@@ -78,6 +78,65 @@ class ScrcpyInput {
             event.preventDefault();
         });
 
+        // Touch support
+        let activeTouchId = null;
+        videoElement.addEventListener('touchstart', (event) => {
+            event.preventDefault();
+            const touch = event.changedTouches[0];
+            activeTouchId = touch.identifier;
+            const rect = videoElement.getBoundingClientRect();
+            const local_x = touch.clientX - rect.left;
+            const local_y = touch.clientY - rect.top;
+            const touchX = (local_x / (rect.right - rect.left)) * this.width;
+            const touchY = (local_y / (rect.bottom - rect.top)) * this.height;
+
+            let data = this.createTouchProtocolData(0, touchX, touchY, this.width, this.height, 0, 0, 65535);
+            this.callback(data);
+        }, { passive: false });
+
+        videoElement.addEventListener('touchend', (event) => {
+            event.preventDefault();
+            for (let i = 0; i < event.changedTouches.length; i++) {
+                const touch = event.changedTouches[i];
+                if (touch.identifier === activeTouchId) {
+                    activeTouchId = null;
+                    const rect = videoElement.getBoundingClientRect();
+                    const local_x = touch.clientX - rect.left;
+                    const local_y = touch.clientY - rect.top;
+                    const touchX = (local_x / (rect.right - rect.left)) * this.width;
+                    const touchY = (local_y / (rect.bottom - rect.top)) * this.height;
+
+                    let data = this.createTouchProtocolData(1, touchX, touchY, this.width, this.height, 0, 0, 0);
+                    this.callback(data);
+                    break;
+                }
+            }
+        }, { passive: false });
+
+        videoElement.addEventListener('touchmove', (event) => {
+            event.preventDefault();
+            for (let i = 0; i < event.changedTouches.length; i++) {
+                const touch = event.changedTouches[i];
+                if (touch.identifier === activeTouchId) {
+                    const rect = videoElement.getBoundingClientRect();
+                    const local_x = touch.clientX - rect.left;
+                    const local_y = touch.clientY - rect.top;
+                    const touchX = (local_x / (rect.right - rect.left)) * this.width;
+                    const touchY = (local_y / (rect.bottom - rect.top)) * this.height;
+
+                    let data = this.createTouchProtocolData(2, touchX, touchY, this.width, this.height, 0, 0, 65535);
+                    this.callback(data);
+                    break;
+                }
+            }
+        }, { passive: false });
+
+        videoElement.addEventListener('touchcancel', (event) => {
+            activeTouchId = null;
+            let data = this.createTouchProtocolData(1, 0, 0, this.width, this.height, 0, 0, 0);
+            this.callback(data);
+        });
+
         videoElement.addEventListener('wheel', (event) => {
             const hScroll = event.deltaX;
             const vScroll = event.deltaY;

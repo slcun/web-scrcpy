@@ -7,7 +7,7 @@ SECRET_KEY = "secret!"
 
 VIDEO_CODEC = "h264"
 # 视频码率（bps，默认 1Mbps）
-VIDEO_BIT_RATE = "512000"
+VIDEO_BIT_RATE = "256000"
 
 # ADB 可执行文件路径（空字符串则用 PATH 中的 adb）
 _ADB_IN_SCRCPY = os.path.join(os.path.dirname(__file__), "scrcpy", "adb.exe")
@@ -29,7 +29,7 @@ CONTROL_RECV_SIZE = 1024
 
 # 日志配置
 # 日志级别: DEBUG, INFO, WARNING, ERROR, CRITICAL
-LOG_LEVEL = "DEBUG"
+LOG_LEVEL = "INFO"
 # 日志格式
 LOG_FORMAT = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 # 日志文件路径（为空则只输出到控制台）
