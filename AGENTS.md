@@ -7,8 +7,10 @@
 ```bash
 pip install -r requirements.txt
 python app.py                     # 默认 0.0.0.0:5000
-python app.py --video_bit_rate 4096000  # 自定义码率
+python app.py --video_bit_rate 4096000  # 自定义码率（覆盖 config.py）
 ```
+
+编辑 `config.py` 可修改端口、secret key、adb 路径、缓冲区大小等参数。
 
 ## 前置条件
 
@@ -40,6 +42,7 @@ static/js/        — socket.io.js, input.js, h264-sps-parser.js, video_parser.j
 
 | 文件 | 作用 |
 |------|------|
+| `config.py` | 集中配置项：端口、码率、adb 路径、缓冲区大小等 |
 | `app.py` | Flask 路由 + SocketIO 事件处理 + 参数解析，约 70 行 |
 | `scrcpy/__init__.py` | scrcpy server 管理：push、forward、启动、3 路 socket 收发 |
 | `scrcpy/scrcpy-server` | 编译好的 scrcpy server jar（需自行获取，非源码） |

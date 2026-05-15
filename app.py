@@ -3,14 +3,15 @@ from flask_socketio import SocketIO, emit, send
 from scrcpy import Scrcpy
 import argparse
 import queue
+import config
 
 scpy_ctx = None
 client_sid = None
 message_queue = queue.Queue()
-video_bit_rate = "1024000"
+video_bit_rate = config.VIDEO_BIT_RATE
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'secret!'
+app.config['SECRET_KEY'] = config.SECRET_KEY
 socketio = SocketIO(app, async_mode=None)
 
 @app.route('/')
@@ -65,7 +66,7 @@ def handle_control_data(data):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Web server for scrcpy')
-    parser.add_argument('--video_bit_rate', default="1024000", help='scrcpy video bit rate')
+    parser.add_argument('--video_bit_rate', default=config.VIDEO_BIT_RATE, help='scrcpy video bit rate')
     args = parser.parse_args()
     video_bit_rate = args.video_bit_rate
-    socketio.run(app, host='0.0.0.0', port=5000)
+    socketio.run(app, host=config.HOST, port=config.PORT)
