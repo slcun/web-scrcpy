@@ -26,3 +26,15 @@ LOCAL_PORT = 5555
 VIDEO_RECV_SIZE = 20480
 AUDIO_RECV_SIZE = 1024
 CONTROL_RECV_SIZE = 1024
+
+# 日志配置
+# 日志级别: DEBUG, INFO, WARNING, ERROR, CRITICAL
+LOG_LEVEL = "DEBUG"
+# 日志格式
+LOG_FORMAT = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+# 日志文件路径（为空则只输出到控制台）
+LOG_FILE = os.path.join(os.path.dirname(__file__), "logs", "web-scrcpy.log")
+# 日志文件最大大小（字节），超过后自动轮转
+LOG_MAX_BYTES = 1024 * 1024 * 5  # 5MB
+# 保留的日志文件数量
+LOG_BACKUP_COUNT = 5

@@ -1,0 +1,300 @@
+2026-05-15 15:40:21,792 - web-scrcpy - INFO - 启动 Web-Scrcpy 服务器, 主机: 0.0.0.0, 端口: 5800, 视频码率: 512000
+2026-05-15 15:40:32,449 - web-scrcpy - INFO - 客户端连接请求, SID: X4ok186phoVBgYvmAAAB
+2026-05-15 15:40:32,449 - web-scrcpy - INFO - 接受连接, SID: X4ok186phoVBgYvmAAAB, 视频码率: 512000
+2026-05-15 15:40:32,449 - web-scrcpy - INFO - 启动 Scrcpy 服务, 视频码率: 512000
+2026-05-15 15:40:32,450 - web-scrcpy - INFO - 检查 ADB 设备...
+2026-05-15 15:40:32,531 - web-scrcpy - DEBUG - ADB 设备列表: List of devices attached
+37012209006286	device
+
+
+2026-05-15 15:40:32,531 - web-scrcpy - INFO - 检测到 Android 设备
+2026-05-15 15:40:32,532 - web-scrcpy - INFO - 推送 scrcpy-server.jar 到设备...
+2026-05-15 15:40:32,532 - web-scrcpy - DEBUG - ADB路径: E:\Users\zhoujie\code\JGIL\web-scrcpy\scrcpy\adb.exe
+2026-05-15 15:40:32,532 - web-scrcpy - DEBUG - 服务器路径: E:\Users\zhoujie\code\JGIL\web-scrcpy\scrcpy\scrcpy-server
+2026-05-15 15:40:32,532 - web-scrcpy - DEBUG - 设备路径: /data/local/tmp/scrcpy-server.jar
+2026-05-15 15:40:32,622 - web-scrcpy - INFO - scrcpy-server.jar 推送成功
+2026-05-15 15:40:32,622 - web-scrcpy - INFO - 设置 ADB 端口转发: tcp:5555 -> localabstract:scrcpy
+2026-05-15 15:40:32,690 - web-scrcpy - INFO - ADB 端口转发设置成功
+2026-05-15 15:40:32,690 - web-scrcpy - INFO - 启动设备端服务器线程...
+2026-05-15 15:40:32,691 - web-scrcpy - INFO - 启动 scrcpy 服务器...
+2026-05-15 15:40:32,691 - web-scrcpy - DEBUG - 服务器启动命令: E:\Users\zhoujie\code\JGIL\web-scrcpy\scrcpy\adb.exe shell CLASSPATH=/data/local/tmp/scrcpy-server.jar app_process / com.genymobile.scrcpy.Server 3.1 tunnel_forward=true log_level=VERBOSE video_codec=h264 video_bit_rate=512000
+2026-05-15 15:40:33,692 - web-scrcpy - INFO - 建立视频连接...
+2026-05-15 15:40:33,693 - web-scrcpy - INFO - 视频连接建立成功
+2026-05-15 15:40:33,693 - web-scrcpy - INFO - 建立音频连接...
+2026-05-15 15:40:33,694 - web-scrcpy - INFO - 音频连接建立成功
+2026-05-15 15:40:33,694 - web-scrcpy - INFO - 建立控制连接...
+2026-05-15 15:40:33,695 - web-scrcpy - INFO - 控制连接建立成功
+2026-05-15 15:40:33,695 - web-scrcpy - INFO - 启动后台线程...
+2026-05-15 15:40:33,696 - web-scrcpy - INFO - 开始接收视频数据 (H.264)...
+2026-05-15 15:40:33,696 - web-scrcpy - INFO - 开始接收音频数据...
+2026-05-15 15:40:33,696 - web-scrcpy - DEBUG - 视频连接确认完成
+2026-05-15 15:40:33,696 - web-scrcpy - INFO - 控制连接已建立...
+2026-05-15 15:40:33,697 - web-scrcpy - INFO - Scrcpy 服务启动完成
+2026-05-15 15:40:33,697 - web-scrcpy - INFO - 连接完成, scpy_ctx: <scrcpy.Scrcpy object at 0x00000279F7C263C0>
+2026-05-15 15:40:33,698 - web-scrcpy - INFO - 视频发送任务启动
+2026-05-15 15:40:33,710 - web-scrcpy - DEBUG - 音频连接确认完成
+2026-05-15 15:40:33,710 - web-scrcpy - WARNING - 服务器输出: [server] WARN: Audio disabled: it is not supported before Android 11
+2026-05-15 15:40:35,350 - web-scrcpy - INFO - 客户端连接请求, SID: JAPfidEfpXJ9r2emAAAD
+2026-05-15 15:40:35,351 - web-scrcpy - WARNING - 拒绝连接: 已有客户端连接 (scpy_ctx=<scrcpy.Scrcpy object at 0x00000279F7C263C0>)
+2026-05-15 15:40:40,776 - web-scrcpy - INFO - 客户端连接请求, SID: tU6xRlZEjPy3jDD9AAAF
+2026-05-15 15:40:40,777 - web-scrcpy - WARNING - 拒绝连接: 已有客户端连接 (scpy_ctx=<scrcpy.Scrcpy object at 0x00000279F7C263C0>)
+2026-05-15 15:40:56,783 - web-scrcpy - INFO - 客户端连接请求, SID: mH-K_z0Q8knq-2bVAAAH
+2026-05-15 15:40:56,784 - web-scrcpy - WARNING - 拒绝连接: 已有客户端连接 (scpy_ctx=<scrcpy.Scrcpy object at 0x00000279F7C263C0>)
+2026-05-15 15:41:01,938 - web-scrcpy - INFO - 客户端连接请求, SID: pGuJZxiNtu_Mw3o9AAAJ
+2026-05-15 15:41:01,939 - web-scrcpy - WARNING - 拒绝连接: 已有客户端连接 (scpy_ctx=<scrcpy.Scrcpy object at 0x00000279F7C263C0>)
+2026-05-15 15:41:27,285 - web-scrcpy - INFO - 客户端断开连接, SID: X4ok186phoVBgYvmAAAB, scpy_ctx: <scrcpy.Scrcpy object at 0x00000279F7C263C0>
+2026-05-15 15:41:27,286 - web-scrcpy - INFO - 停止 Scrcpy 服务...
+2026-05-15 15:41:27,286 - web-scrcpy - ERROR - 接收视频数据异常: [WinError 10038] 在一个非套接字上尝试了一个操作。
+2026-05-15 15:41:27,286 - web-scrcpy - DEBUG - 视频 socket 关闭成功
+2026-05-15 15:41:27,287 - web-scrcpy - ERROR - 接收音频数据异常: [WinError 10038] 在一个非套接字上尝试了一个操作。
+2026-05-15 15:41:27,287 - web-scrcpy - DEBUG - 音频 socket 关闭成功
+2026-05-15 15:41:27,288 - web-scrcpy - ERROR - 控制连接异常: [WinError 10038] 在一个非套接字上尝试了一个操作。
+2026-05-15 15:41:27,288 - web-scrcpy - DEBUG - 控制 socket 关闭成功
+2026-05-15 15:41:27,288 - web-scrcpy - DEBUG - 等待后台线程结束...
+2026-05-15 15:41:27,289 - web-scrcpy - DEBUG - 设备端进程已终止
+2026-05-15 15:41:27,291 - web-scrcpy - INFO - Scrcpy 服务器停止
+2026-05-15 15:41:27,291 - web-scrcpy - INFO - Scrcpy 服务已停止
+2026-05-15 15:41:27,292 - web-scrcpy - INFO - Scrcpy 服务已停止
+2026-05-15 15:41:27,301 - web-scrcpy - INFO - 视频发送任务停止
+2026-05-15 15:41:33,735 - web-scrcpy - INFO - 客户端连接请求, SID: KRDJcQVKrqpXnc8-AAAL
+2026-05-15 15:41:33,735 - web-scrcpy - INFO - 接受连接, SID: KRDJcQVKrqpXnc8-AAAL, 视频码率: 512000
+2026-05-15 15:41:33,735 - web-scrcpy - INFO - 启动 Scrcpy 服务, 视频码率: 512000
+2026-05-15 15:41:33,736 - web-scrcpy - INFO - 检查 ADB 设备...
+2026-05-15 15:41:33,805 - web-scrcpy - DEBUG - ADB 设备列表: List of devices attached
+37012209006286	device
+
+
+2026-05-15 15:41:33,806 - web-scrcpy - INFO - 检测到 Android 设备
+2026-05-15 15:41:33,806 - web-scrcpy - INFO - 推送 scrcpy-server.jar 到设备...
+2026-05-15 15:41:33,806 - web-scrcpy - DEBUG - ADB路径: E:\Users\zhoujie\code\JGIL\web-scrcpy\scrcpy\adb.exe
+2026-05-15 15:41:33,806 - web-scrcpy - DEBUG - 服务器路径: E:\Users\zhoujie\code\JGIL\web-scrcpy\scrcpy\scrcpy-server
+2026-05-15 15:41:33,807 - web-scrcpy - DEBUG - 设备路径: /data/local/tmp/scrcpy-server.jar
+2026-05-15 15:41:33,878 - web-scrcpy - INFO - scrcpy-server.jar 推送成功
+2026-05-15 15:41:33,878 - web-scrcpy - INFO - 设置 ADB 端口转发: tcp:5555 -> localabstract:scrcpy
+2026-05-15 15:41:33,935 - web-scrcpy - INFO - ADB 端口转发设置成功
+2026-05-15 15:41:33,936 - web-scrcpy - INFO - 启动设备端服务器线程...
+2026-05-15 15:41:33,936 - web-scrcpy - INFO - 启动 scrcpy 服务器...
+2026-05-15 15:41:33,936 - web-scrcpy - DEBUG - 服务器启动命令: E:\Users\zhoujie\code\JGIL\web-scrcpy\scrcpy\adb.exe shell CLASSPATH=/data/local/tmp/scrcpy-server.jar app_process / com.genymobile.scrcpy.Server 3.1 tunnel_forward=true log_level=VERBOSE video_codec=h264 video_bit_rate=512000
+2026-05-15 15:41:34,937 - web-scrcpy - INFO - 建立视频连接...
+2026-05-15 15:41:34,939 - web-scrcpy - INFO - 视频连接建立成功
+2026-05-15 15:41:34,939 - web-scrcpy - INFO - 建立音频连接...
+2026-05-15 15:41:34,941 - web-scrcpy - INFO - 音频连接建立成功
+2026-05-15 15:41:34,942 - web-scrcpy - INFO - 建立控制连接...
+2026-05-15 15:41:34,944 - web-scrcpy - INFO - 控制连接建立成功
+2026-05-15 15:41:34,945 - web-scrcpy - INFO - 启动后台线程...
+2026-05-15 15:41:34,946 - web-scrcpy - INFO - 开始接收视频数据 (H.264)...
+2026-05-15 15:41:34,946 - web-scrcpy - INFO - 开始接收音频数据...
+2026-05-15 15:41:34,947 - web-scrcpy - DEBUG - 视频连接确认完成
+2026-05-15 15:41:34,947 - web-scrcpy - INFO - 控制连接已建立...
+2026-05-15 15:41:34,948 - web-scrcpy - INFO - Scrcpy 服务启动完成
+2026-05-15 15:41:34,948 - web-scrcpy - INFO - 连接完成, scpy_ctx: <scrcpy.Scrcpy object at 0x00000279F7C5B750>
+2026-05-15 15:41:34,949 - web-scrcpy - INFO - 视频发送任务启动
+2026-05-15 15:41:34,961 - web-scrcpy - DEBUG - 音频连接确认完成
+2026-05-15 15:41:34,961 - web-scrcpy - WARNING - 服务器输出: [server] WARN: Audio disabled: it is not supported before Android 11
+2026-05-15 15:41:51,200 - web-scrcpy - DEBUG - 发送控制数据成功, 长度: 32
+2026-05-15 15:41:51,200 - web-scrcpy - DEBUG - 发送控制数据, 长度: 32
+2026-05-15 15:41:51,201 - web-scrcpy - DEBUG - 发送控制数据成功, 长度: 32
+2026-05-15 15:41:51,201 - web-scrcpy - DEBUG - 发送控制数据, 长度: 32
+2026-05-15 15:41:52,621 - web-scrcpy - DEBUG - 发送控制数据成功, 长度: 32
+2026-05-15 15:41:52,621 - web-scrcpy - DEBUG - 发送控制数据, 长度: 32
+2026-05-15 15:41:52,636 - web-scrcpy - DEBUG - 发送控制数据成功, 长度: 32
+2026-05-15 15:41:52,637 - web-scrcpy - DEBUG - 发送控制数据, 长度: 32
+2026-05-15 15:41:54,214 - web-scrcpy - DEBUG - 发送控制数据成功, 长度: 32
+2026-05-15 15:41:54,215 - web-scrcpy - DEBUG - 发送控制数据, 长度: 32
+2026-05-15 15:41:54,216 - web-scrcpy - DEBUG - 发送控制数据成功, 长度: 32
+2026-05-15 15:41:54,216 - web-scrcpy - DEBUG - 发送控制数据, 长度: 32
+2026-05-15 15:41:55,953 - web-scrcpy - DEBUG - 发送控制数据成功, 长度: 32
+2026-05-15 15:41:55,954 - web-scrcpy - DEBUG - 发送控制数据, 长度: 32
+2026-05-15 15:41:55,969 - web-scrcpy - DEBUG - 发送控制数据成功, 长度: 32
+2026-05-15 15:41:55,970 - web-scrcpy - DEBUG - 发送控制数据, 长度: 32
+2026-05-15 15:41:58,516 - web-scrcpy - DEBUG - 发送控制数据成功, 长度: 32
+2026-05-15 15:41:58,517 - web-scrcpy - DEBUG - 发送控制数据, 长度: 32
+2026-05-15 15:41:58,519 - web-scrcpy - DEBUG - 发送控制数据成功, 长度: 32
+2026-05-15 15:41:58,520 - web-scrcpy - DEBUG - 发送控制数据, 长度: 32
+2026-05-15 15:42:01,101 - web-scrcpy - DEBUG - 发送控制数据成功, 长度: 32
+2026-05-15 15:42:01,101 - web-scrcpy - DEBUG - 发送控制数据, 长度: 32
+2026-05-15 15:42:01,101 - web-scrcpy - DEBUG - 发送控制数据成功, 长度: 32
+2026-05-15 15:42:01,102 - web-scrcpy - DEBUG - 发送控制数据, 长度: 32
+2026-05-15 15:42:02,022 - web-scrcpy - DEBUG - 发送控制数据成功, 长度: 32
+2026-05-15 15:42:02,023 - web-scrcpy - DEBUG - 发送控制数据, 长度: 32
+2026-05-15 15:42:02,025 - web-scrcpy - DEBUG - 发送控制数据成功, 长度: 32
+2026-05-15 15:42:02,026 - web-scrcpy - DEBUG - 发送控制数据, 长度: 32
+2026-05-15 15:42:03,992 - web-scrcpy - DEBUG - 发送控制数据成功, 长度: 32
+2026-05-15 15:42:03,993 - web-scrcpy - DEBUG - 发送控制数据, 长度: 32
+2026-05-15 15:42:03,995 - web-scrcpy - DEBUG - 发送控制数据成功, 长度: 32
+2026-05-15 15:42:03,996 - web-scrcpy - DEBUG - 发送控制数据, 长度: 32
+2026-05-15 15:42:05,075 - web-scrcpy - DEBUG - 发送控制数据成功, 长度: 32
+2026-05-15 15:42:05,075 - web-scrcpy - DEBUG - 发送控制数据, 长度: 32
+2026-05-15 15:42:05,100 - web-scrcpy - DEBUG - 发送控制数据成功, 长度: 32
+2026-05-15 15:42:05,101 - web-scrcpy - DEBUG - 发送控制数据, 长度: 32
+2026-05-15 15:42:06,027 - web-scrcpy - DEBUG - 发送控制数据成功, 长度: 32
+2026-05-15 15:42:06,027 - web-scrcpy - DEBUG - 发送控制数据, 长度: 32
+2026-05-15 15:42:06,042 - web-scrcpy - DEBUG - 发送控制数据成功, 长度: 32
+2026-05-15 15:42:06,043 - web-scrcpy - DEBUG - 发送控制数据, 长度: 32
+2026-05-15 15:42:06,822 - web-scrcpy - DEBUG - 发送控制数据成功, 长度: 32
+2026-05-15 15:42:06,823 - web-scrcpy - DEBUG - 发送控制数据, 长度: 32
+2026-05-15 15:42:06,825 - web-scrcpy - DEBUG - 发送控制数据成功, 长度: 32
+2026-05-15 15:42:06,826 - web-scrcpy - DEBUG - 发送控制数据, 长度: 32
+2026-05-15 15:42:11,372 - web-scrcpy - INFO - 客户端断开连接, SID: KRDJcQVKrqpXnc8-AAAL, scpy_ctx: <scrcpy.Scrcpy object at 0x00000279F7C5B750>
+2026-05-15 15:42:11,373 - web-scrcpy - INFO - 停止 Scrcpy 服务...
+2026-05-15 15:42:11,373 - web-scrcpy - DEBUG - 视频 socket 关闭成功
+2026-05-15 15:42:11,374 - web-scrcpy - ERROR - 接收视频数据异常: [WinError 10038] 在一个非套接字上尝试了一个操作。
+2026-05-15 15:42:11,374 - web-scrcpy - ERROR - 接收音频数据异常: [WinError 10038] 在一个非套接字上尝试了一个操作。
+2026-05-15 15:42:11,374 - web-scrcpy - DEBUG - 音频 socket 关闭成功
+2026-05-15 15:42:11,375 - web-scrcpy - DEBUG - 控制 socket 关闭成功
+2026-05-15 15:42:11,375 - web-scrcpy - ERROR - 控制连接异常: [WinError 10038] 在一个非套接字上尝试了一个操作。
+2026-05-15 15:42:11,376 - web-scrcpy - DEBUG - 等待后台线程结束...
+2026-05-15 15:42:11,376 - web-scrcpy - DEBUG - 设备端进程已终止
+2026-05-15 15:42:11,379 - web-scrcpy - INFO - Scrcpy 服务器停止
+2026-05-15 15:42:11,379 - web-scrcpy - INFO - Scrcpy 服务已停止
+2026-05-15 15:42:11,380 - web-scrcpy - INFO - Scrcpy 服务已停止
+2026-05-15 15:42:11,380 - web-scrcpy - INFO - 视频发送任务停止
+2026-05-15 15:42:37,619 - web-scrcpy - INFO - 客户端连接请求, SID: yhvw1VKy40Fpr4KuAAAN
+2026-05-15 15:42:37,619 - web-scrcpy - INFO - 接受连接, SID: yhvw1VKy40Fpr4KuAAAN, 视频码率: 512000
+2026-05-15 15:42:37,620 - web-scrcpy - INFO - 启动 Scrcpy 服务, 视频码率: 512000
+2026-05-15 15:42:37,620 - web-scrcpy - INFO - 检查 ADB 设备...
+2026-05-15 15:42:37,683 - web-scrcpy - DEBUG - ADB 设备列表: List of devices attached
+37012209006286	device
+
+
+2026-05-15 15:42:37,684 - web-scrcpy - INFO - 检测到 Android 设备
+2026-05-15 15:42:37,684 - web-scrcpy - INFO - 推送 scrcpy-server.jar 到设备...
+2026-05-15 15:42:37,684 - web-scrcpy - DEBUG - ADB路径: E:\Users\zhoujie\code\JGIL\web-scrcpy\scrcpy\adb.exe
+2026-05-15 15:42:37,685 - web-scrcpy - DEBUG - 服务器路径: E:\Users\zhoujie\code\JGIL\web-scrcpy\scrcpy\scrcpy-server
+2026-05-15 15:42:37,685 - web-scrcpy - DEBUG - 设备路径: /data/local/tmp/scrcpy-server.jar
+2026-05-15 15:42:37,754 - web-scrcpy - INFO - scrcpy-server.jar 推送成功
+2026-05-15 15:42:37,754 - web-scrcpy - INFO - 设置 ADB 端口转发: tcp:5555 -> localabstract:scrcpy
+2026-05-15 15:42:37,812 - web-scrcpy - INFO - ADB 端口转发设置成功
+2026-05-15 15:42:37,813 - web-scrcpy - INFO - 启动设备端服务器线程...
+2026-05-15 15:42:37,813 - web-scrcpy - INFO - 启动 scrcpy 服务器...
+2026-05-15 15:42:37,813 - web-scrcpy - DEBUG - 服务器启动命令: E:\Users\zhoujie\code\JGIL\web-scrcpy\scrcpy\adb.exe shell CLASSPATH=/data/local/tmp/scrcpy-server.jar app_process / com.genymobile.scrcpy.Server 3.1 tunnel_forward=true log_level=VERBOSE video_codec=h264 video_bit_rate=512000
+2026-05-15 15:42:38,814 - web-scrcpy - INFO - 建立视频连接...
+2026-05-15 15:42:38,815 - web-scrcpy - INFO - 视频连接建立成功
+2026-05-15 15:42:38,815 - web-scrcpy - INFO - 建立音频连接...
+2026-05-15 15:42:38,817 - web-scrcpy - INFO - 音频连接建立成功
+2026-05-15 15:42:38,817 - web-scrcpy - INFO - 建立控制连接...
+2026-05-15 15:42:38,818 - web-scrcpy - INFO - 控制连接建立成功
+2026-05-15 15:42:38,818 - web-scrcpy - INFO - 启动后台线程...
+2026-05-15 15:42:38,819 - web-scrcpy - INFO - 开始接收视频数据 (H.264)...
+2026-05-15 15:42:38,820 - web-scrcpy - INFO - 开始接收音频数据...
+2026-05-15 15:42:38,820 - web-scrcpy - INFO - 控制连接已建立...
+2026-05-15 15:42:38,820 - web-scrcpy - DEBUG - 视频连接确认完成
+2026-05-15 15:42:38,820 - web-scrcpy - INFO - Scrcpy 服务启动完成
+2026-05-15 15:42:38,821 - web-scrcpy - INFO - 连接完成, scpy_ctx: <scrcpy.Scrcpy object at 0x00000279F7D5C2D0>
+2026-05-15 15:42:38,821 - web-scrcpy - INFO - 视频发送任务启动
+2026-05-15 15:42:38,835 - web-scrcpy - DEBUG - 音频连接确认完成
+2026-05-15 15:42:38,835 - web-scrcpy - WARNING - 服务器输出: [server] WARN: Audio disabled: it is not supported before Android 11
+2026-05-15 15:42:53,930 - web-scrcpy - DEBUG - 发送控制数据成功, 长度: 32
+2026-05-15 15:42:53,931 - web-scrcpy - DEBUG - 发送控制数据, 长度: 32
+2026-05-15 15:42:53,933 - web-scrcpy - DEBUG - 发送控制数据成功, 长度: 32
+2026-05-15 15:42:53,934 - web-scrcpy - DEBUG - 发送控制数据, 长度: 32
+2026-05-15 15:42:55,197 - web-scrcpy - DEBUG - 发送控制数据成功, 长度: 32
+2026-05-15 15:42:55,198 - web-scrcpy - DEBUG - 发送控制数据, 长度: 32
+2026-05-15 15:42:55,200 - web-scrcpy - DEBUG - 发送控制数据成功, 长度: 32
+2026-05-15 15:42:55,200 - web-scrcpy - DEBUG - 发送控制数据, 长度: 32
+2026-05-15 15:43:36,849 - web-scrcpy - DEBUG - 发送控制数据成功, 长度: 14
+2026-05-15 15:43:36,850 - web-scrcpy - DEBUG - 发送控制数据, 长度: 14
+2026-05-15 15:43:36,852 - web-scrcpy - DEBUG - 发送控制数据成功, 长度: 14
+2026-05-15 15:43:36,853 - web-scrcpy - DEBUG - 发送控制数据, 长度: 14
+2026-05-15 15:43:39,297 - web-scrcpy - DEBUG - 发送控制数据成功, 长度: 32
+2026-05-15 15:43:39,297 - web-scrcpy - DEBUG - 发送控制数据, 长度: 32
+2026-05-15 15:43:39,298 - web-scrcpy - DEBUG - 发送控制数据成功, 长度: 32
+2026-05-15 15:43:39,299 - web-scrcpy - DEBUG - 发送控制数据, 长度: 32
+2026-05-15 15:43:44,013 - web-scrcpy - DEBUG - 发送控制数据成功, 长度: 32
+2026-05-15 15:43:44,013 - web-scrcpy - DEBUG - 发送控制数据, 长度: 32
+2026-05-15 15:43:44,015 - web-scrcpy - DEBUG - 发送控制数据成功, 长度: 32
+2026-05-15 15:43:44,015 - web-scrcpy - DEBUG - 发送控制数据, 长度: 32
+2026-05-15 15:43:47,140 - web-scrcpy - DEBUG - 发送控制数据成功, 长度: 32
+2026-05-15 15:43:47,141 - web-scrcpy - DEBUG - 发送控制数据, 长度: 32
+2026-05-15 15:43:47,142 - web-scrcpy - DEBUG - 发送控制数据成功, 长度: 32
+2026-05-15 15:43:47,142 - web-scrcpy - DEBUG - 发送控制数据, 长度: 32
+2026-05-15 15:43:53,724 - web-scrcpy - DEBUG - 发送控制数据成功, 长度: 14
+2026-05-15 15:43:53,724 - web-scrcpy - DEBUG - 发送控制数据, 长度: 14
+2026-05-15 15:43:53,739 - web-scrcpy - DEBUG - 发送控制数据成功, 长度: 14
+2026-05-15 15:43:53,740 - web-scrcpy - DEBUG - 发送控制数据, 长度: 14
+2026-05-15 15:43:56,225 - web-scrcpy - DEBUG - 发送控制数据成功, 长度: 32
+2026-05-15 15:43:56,225 - web-scrcpy - DEBUG - 发送控制数据, 长度: 32
+2026-05-15 15:43:56,226 - web-scrcpy - DEBUG - 发送控制数据成功, 长度: 32
+2026-05-15 15:43:56,227 - web-scrcpy - DEBUG - 发送控制数据, 长度: 32
+2026-05-15 15:43:58,361 - web-scrcpy - DEBUG - 发送控制数据成功, 长度: 14
+2026-05-15 15:43:58,363 - web-scrcpy - DEBUG - 发送控制数据, 长度: 14
+2026-05-15 15:43:58,365 - web-scrcpy - DEBUG - 发送控制数据成功, 长度: 14
+2026-05-15 15:43:58,366 - web-scrcpy - DEBUG - 发送控制数据, 长度: 14
+2026-05-15 15:43:59,940 - web-scrcpy - DEBUG - 发送控制数据成功, 长度: 32
+2026-05-15 15:43:59,940 - web-scrcpy - DEBUG - 发送控制数据, 长度: 32
+2026-05-15 15:43:59,956 - web-scrcpy - DEBUG - 发送控制数据成功, 长度: 32
+2026-05-15 15:43:59,956 - web-scrcpy - DEBUG - 发送控制数据, 长度: 32
+2026-05-15 15:44:01,556 - web-scrcpy - DEBUG - 发送控制数据成功, 长度: 32
+2026-05-15 15:44:01,557 - web-scrcpy - DEBUG - 发送控制数据, 长度: 32
+2026-05-15 15:44:01,573 - web-scrcpy - DEBUG - 发送控制数据成功, 长度: 32
+2026-05-15 15:44:01,573 - web-scrcpy - DEBUG - 发送控制数据, 长度: 32
+2026-05-15 15:44:04,753 - web-scrcpy - DEBUG - 发送控制数据成功, 长度: 14
+2026-05-15 15:44:04,753 - web-scrcpy - DEBUG - 发送控制数据, 长度: 14
+2026-05-15 15:44:04,754 - web-scrcpy - DEBUG - 发送控制数据成功, 长度: 14
+2026-05-15 15:44:04,754 - web-scrcpy - DEBUG - 发送控制数据, 长度: 14
+2026-05-15 15:44:11,879 - web-scrcpy - DEBUG - 发送控制数据成功, 长度: 32
+2026-05-15 15:44:11,879 - web-scrcpy - DEBUG - 发送控制数据, 长度: 32
+2026-05-15 15:44:11,880 - web-scrcpy - DEBUG - 发送控制数据成功, 长度: 32
+2026-05-15 15:44:11,880 - web-scrcpy - DEBUG - 发送控制数据, 长度: 32
+2026-05-15 15:44:14,185 - web-scrcpy - DEBUG - 发送控制数据成功, 长度: 32
+2026-05-15 15:44:14,186 - web-scrcpy - DEBUG - 发送控制数据, 长度: 32
+2026-05-15 15:44:14,188 - web-scrcpy - DEBUG - 发送控制数据成功, 长度: 32
+2026-05-15 15:44:14,189 - web-scrcpy - DEBUG - 发送控制数据, 长度: 32
+2026-05-15 15:44:16,186 - web-scrcpy - DEBUG - 发送控制数据成功, 长度: 14
+2026-05-15 15:44:16,187 - web-scrcpy - DEBUG - 发送控制数据, 长度: 14
+2026-05-15 15:44:16,189 - web-scrcpy - DEBUG - 发送控制数据成功, 长度: 14
+2026-05-15 15:44:16,190 - web-scrcpy - DEBUG - 发送控制数据, 长度: 14
+2026-05-15 15:44:17,949 - web-scrcpy - DEBUG - 发送控制数据成功, 长度: 32
+2026-05-15 15:44:17,949 - web-scrcpy - DEBUG - 发送控制数据, 长度: 32
+2026-05-15 15:44:17,949 - web-scrcpy - DEBUG - 发送控制数据成功, 长度: 32
+2026-05-15 15:44:17,950 - web-scrcpy - DEBUG - 发送控制数据, 长度: 32
+2026-05-15 15:44:45,154 - web-scrcpy - INFO - 客户端断开连接, SID: yhvw1VKy40Fpr4KuAAAN, scpy_ctx: <scrcpy.Scrcpy object at 0x00000279F7D5C2D0>
+2026-05-15 15:44:45,155 - web-scrcpy - INFO - 停止 Scrcpy 服务...
+2026-05-15 15:44:45,156 - web-scrcpy - DEBUG - 视频 socket 关闭成功
+2026-05-15 15:44:45,157 - web-scrcpy - ERROR - 接收视频数据异常: [WinError 10038] 在一个非套接字上尝试了一个操作。
+2026-05-15 15:44:45,158 - web-scrcpy - DEBUG - 音频 socket 关闭成功
+2026-05-15 15:44:45,159 - web-scrcpy - ERROR - 接收音频数据异常: [WinError 10038] 在一个非套接字上尝试了一个操作。
+2026-05-15 15:44:45,161 - web-scrcpy - DEBUG - 控制 socket 关闭成功
+2026-05-15 15:44:45,163 - web-scrcpy - ERROR - 控制连接异常: [WinError 10038] 在一个非套接字上尝试了一个操作。
+2026-05-15 15:44:45,164 - web-scrcpy - DEBUG - 等待后台线程结束...
+2026-05-15 15:44:45,165 - web-scrcpy - DEBUG - 设备端进程已终止
+2026-05-15 15:44:45,173 - web-scrcpy - INFO - Scrcpy 服务器停止
+2026-05-15 15:44:45,174 - web-scrcpy - INFO - Scrcpy 服务已停止
+2026-05-15 15:44:45,175 - web-scrcpy - INFO - Scrcpy 服务已停止
+2026-05-15 15:44:45,176 - web-scrcpy - INFO - 视频发送任务停止
+2026-05-15 15:44:45,408 - web-scrcpy - INFO - 客户端连接请求, SID: 5yLMOFcazBxO4UeLAAAP
+2026-05-15 15:44:45,408 - web-scrcpy - INFO - 接受连接, SID: 5yLMOFcazBxO4UeLAAAP, 视频码率: 512000
+2026-05-15 15:44:45,408 - web-scrcpy - INFO - 启动 Scrcpy 服务, 视频码率: 512000
+2026-05-15 15:44:45,409 - web-scrcpy - INFO - 检查 ADB 设备...
+2026-05-15 15:44:45,471 - web-scrcpy - DEBUG - ADB 设备列表: List of devices attached
+37012209006286	device
+
+
+2026-05-15 15:44:45,471 - web-scrcpy - INFO - 检测到 Android 设备
+2026-05-15 15:44:45,471 - web-scrcpy - INFO - 推送 scrcpy-server.jar 到设备...
+2026-05-15 15:44:45,471 - web-scrcpy - DEBUG - ADB路径: E:\Users\zhoujie\code\JGIL\web-scrcpy\scrcpy\adb.exe
+2026-05-15 15:44:45,472 - web-scrcpy - DEBUG - 服务器路径: E:\Users\zhoujie\code\JGIL\web-scrcpy\scrcpy\scrcpy-server
+2026-05-15 15:44:45,472 - web-scrcpy - DEBUG - 设备路径: /data/local/tmp/scrcpy-server.jar
+2026-05-15 15:44:45,543 - web-scrcpy - INFO - scrcpy-server.jar 推送成功
+2026-05-15 15:44:45,543 - web-scrcpy - INFO - 设置 ADB 端口转发: tcp:5555 -> localabstract:scrcpy
+2026-05-15 15:44:45,601 - web-scrcpy - INFO - ADB 端口转发设置成功
+2026-05-15 15:44:45,601 - web-scrcpy - INFO - 启动设备端服务器线程...
+2026-05-15 15:44:45,602 - web-scrcpy - INFO - 启动 scrcpy 服务器...
+2026-05-15 15:44:45,602 - web-scrcpy - DEBUG - 服务器启动命令: E:\Users\zhoujie\code\JGIL\web-scrcpy\scrcpy\adb.exe shell CLASSPATH=/data/local/tmp/scrcpy-server.jar app_process / com.genymobile.scrcpy.Server 3.1 tunnel_forward=true log_level=VERBOSE video_codec=h264 video_bit_rate=512000
+2026-05-15 15:44:46,602 - web-scrcpy - INFO - 建立视频连接...
+2026-05-15 15:44:46,604 - web-scrcpy - INFO - 视频连接建立成功
+2026-05-15 15:44:46,605 - web-scrcpy - INFO - 建立音频连接...
+2026-05-15 15:44:46,606 - web-scrcpy - INFO - 音频连接建立成功
+2026-05-15 15:44:46,606 - web-scrcpy - INFO - 建立控制连接...
+2026-05-15 15:44:46,607 - web-scrcpy - INFO - 控制连接建立成功
+2026-05-15 15:44:46,608 - web-scrcpy - INFO - 启动后台线程...
+2026-05-15 15:44:46,608 - web-scrcpy - INFO - 开始接收视频数据 (H.264)...
+2026-05-15 15:44:46,609 - web-scrcpy - INFO - 开始接收音频数据...
+2026-05-15 15:44:46,609 - web-scrcpy - DEBUG - 视频连接确认完成
+2026-05-15 15:44:46,609 - web-scrcpy - INFO - 控制连接已建立...
+2026-05-15 15:44:46,609 - web-scrcpy - INFO - Scrcpy 服务启动完成
+2026-05-15 15:44:46,610 - web-scrcpy - INFO - 连接完成, scpy_ctx: <scrcpy.Scrcpy object at 0x00000279F7C43100>
+2026-05-15 15:44:46,610 - web-scrcpy - INFO - 视频发送任务启动
+2026-05-15 15:44:46,626 - web-scrcpy - DEBUG - 音频连接确认完成
+2026-05-15 15:44:46,626 - web-scrcpy - WARNING - 服务器输出: [server] WARN: Audio disabled: it is not supported before Android 11
+2026-05-15 15:44:53,635 - web-scrcpy - INFO - Scrcpy 服务器停止
