@@ -82,7 +82,8 @@ def handle_connect():
         return False
     else:
         client_sid = request.sid
-        logger.info(f"接受连接, SID: {client_sid}, 视频码率: {video_bit_rate}")
+        logger.info(f"接受连接, SID: {client_sid}, 视频码率: {video_bit_rate}, 编码: {config.VIDEO_CODEC}")
+        socketio.emit('codec_info', {'codec': config.VIDEO_CODEC}, to=client_sid)
         scpy_ctx = Scrcpy()
         scpy_ctx.scrcpy_start(send_video_data, video_bit_rate)
         socketio.start_background_task(video_send_task)

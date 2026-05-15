@@ -7,9 +7,13 @@
     <link href="/static/css/font-awesome.min.css" rel="stylesheet">
     <title>Web server for scrcpy</title>
     <style>
+        html {
+            height: 100%;
+        }
+
         body {
             margin: 0;
-            height: 100vh;
+            height: 100dvh;
             display: flex;
             flex-direction: column;
             overflow: hidden;
@@ -79,10 +83,13 @@
     </div>
     <script src="/static/js/jmuxer.min.js"></script>
     <script>
+        let videoCodec = 'H264';
+
         const videoElement = document.getElementById('player');
         const jmuxer = new JMuxer({
             node: 'player',
             mode: 'video',
+            videoCodec: videoCodec,
             flushingTime: 0,
             fps: 60,
             clearBuffer: true,
@@ -191,11 +198,17 @@
                     input.resizeScreen(data["width"], data["height"]);
                 }
             }
-        });
+        }, false, videoCodec === 'H265' ? 'h265' : 'h264');
 
         socket.on('video_data', (data) => {
             const newData = new Uint8Array(data);
             parser.appendData(newData);
+        });
+
+        socket.on('codec_info', (data) => {
+            videoCodec = data.codec && data.codec.toLowerCase() === 'h265' ? 'H265' : 'H264';
+            jmuxer.options.videoCodec = videoCodec;
+            parser.codec = videoCodec === 'H265' ? 'h265' : 'h264';
         });
 
         socket.on('connect', () => {

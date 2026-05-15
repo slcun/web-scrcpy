@@ -12,6 +12,13 @@ python app.py --video_bit_rate 4096000  # 自定义码率（覆盖 config.py）
 
 编辑 `config.py` 可修改端口、secret key、adb 路径、缓冲区大小等参数。
 
+## 编解码支持
+
+- 支持的编码: `h264`（默认）、`h265`（HEVC，需浏览器支持）
+- 设置 `VIDEO_CODEC = "h265"` 使用 H.265 编码（降低带宽）
+- jmuxer.min.js 已升级至 v3+，自动根据 `videoCodec` 选项选择 H264/H265 解码路径
+- 浏览器需支持 `video/mp4; codecs="hev1.*"` 的 MSE（Chrome 105+、Edge、Safari）
+
 ## 前置条件
 
 - `adb` 在 PATH 中，Android 设备已连接且开启 USB 调试
@@ -42,7 +49,7 @@ static/js/        — socket.io.js, input.js, h264-sps-parser.js, video_parser.j
 
 | 文件 | 作用 |
 |------|------|
-| `config.py` | 集中配置项：端口、码率、adb 路径、缓冲区大小等 |
+| `config.py` | 集中配置项：端口、码率、adb 路径、缓冲区大小、帧率、保持唤醒、触摸点、音频等 |
 | `app.py` | Flask 路由 + SocketIO 事件处理 + 参数解析，约 70 行 |
 | `scrcpy/__init__.py` | scrcpy server 管理：push、forward、启动、3 路 socket 收发 |
 | `scrcpy/scrcpy-server` | 编译好的 scrcpy server jar（需自行获取，非源码） |

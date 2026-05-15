@@ -68,8 +68,8 @@ class Scrcpy:
         logger.info("Scrcpy 服务器停止")
 
     def receive_video_data(self):
-        """接收视频数据（H.264 格式）"""
-        logger.info("开始接收视频数据 (H.264)...")
+        """接收视频数据"""
+        logger.info(f"开始接收视频数据 ({config.VIDEO_CODEC.upper()})...")
         try:
             self.video_socket.recv(1)  # 接收连接确认字节
             logger.debug("视频连接确认完成")

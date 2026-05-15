@@ -22,6 +22,18 @@ DEVICE_SERVER_PATH = "/data/local/tmp/scrcpy-server.jar"
 # ADB forward 本地端口
 LOCAL_PORT = 5555
 
+# 最大帧率（0 表示不限制）
+MAX_FPS = 0
+
+# 保持设备唤醒（防止屏幕熄灭）
+STAY_AWAKE = False
+
+# 显示触摸点（用于演示/录屏）
+SHOW_TOUCHES = False
+
+# 是否启用音频转发
+ENABLE_AUDIO = False
+
 # Socket 接收缓冲区大小
 VIDEO_RECV_SIZE = 20480
 AUDIO_RECV_SIZE = 1024

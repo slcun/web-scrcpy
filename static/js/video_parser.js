@@ -1,13 +1,15 @@
 class VideoParser {
-    constructor(onNaluCallback, debug = false) {
+    constructor(onNaluCallback, debug = false, codec = 'h264') {
         this.debug = debug
         this.buffer = new Uint8Array(0);
+        this.codec = codec.toLowerCase();
         this.name = null;
         this.width = null;
         this.height = null;
         this.hasKeyFrame = null;
         this.sps = null;
         this.pps = null;
+        this.vps = null;
         this.mimeCodec = null;
         this.onNaluCallback = onNaluCallback;
         this.hasSentSpsPps = false;
@@ -82,6 +84,14 @@ class VideoParser {
     }
 
     processBuffer(nalu) {
+        if (this.codec === 'h265') {
+            this.processBufferH265(nalu);
+        } else {
+            this.processBufferH264(nalu);
+        }
+    }
+
+    processBufferH264(nalu) {
         const nalu_type = nalu[4] & 0x1f;
         if (nalu_type === 1) {
             if (this.debug)
@@ -95,7 +105,7 @@ class VideoParser {
                 this.sps = nalu.slice(0, next_pos)
                 if (this.debug)
                     console.log("sps", next_pos)
-                this.processBuffer(nalu.slice(next_pos))
+                this.processBufferH264(nalu.slice(next_pos))
             } else {
                 this.sps = nalu
                 if (this.debug)
@@ -115,7 +125,7 @@ class VideoParser {
                 this.pps = nalu.slice(0, next_pos)
                 if (this.debug)
                     console.log("pps", next_pos)
-                this.processBuffer(nalu.slice(next_pos))
+                this.processBufferH264(nalu.slice(next_pos))
             } else {
                 this.pps = nalu
                 if (this.debug)
@@ -123,7 +133,7 @@ class VideoParser {
             }
             return;
         } else {
-            console.log("unknow frame type", nalu[0], nalu[1], nalu[2], nalu[3], nalu_type)
+            console.log("unknown h264 frame type", nalu[0], nalu[1], nalu[2], nalu[3], nalu_type)
         }
 
         if (this.pps != null && this.sps != null) {
@@ -142,5 +152,111 @@ class VideoParser {
                 data: nalu
             });
         }
+    }
+
+    processBufferH265(nalu) {
+        const nalu_type = (nalu[4] >> 1) & 0x3f;
+        if (nalu_type === 0) {
+            if (this.debug)
+                console.log("H265 P frame", nalu.length)
+        } else if (nalu_type === 1) {
+            if (this.debug)
+                console.log("H265 non-IDR frame", nalu.length)
+        } else if (nalu_type === 19 || nalu_type === 20) {
+            if (this.debug)
+                console.log("H265 I frame", nalu.length)
+        } else if (nalu_type === 32) {
+            this.vps = nalu;
+            if (this.debug)
+                console.log("h265 vps", nalu.length)
+            return;
+        } else if (nalu_type === 33) {
+            const next_pos = this.findSequence(nalu, [0, 0, 0, 1], 5)
+            if (next_pos > 0) {
+                this.sps = nalu.slice(0, next_pos)
+                if (this.debug)
+                    console.log("h265 sps", next_pos)
+                this.processBufferH265(nalu.slice(next_pos))
+            } else {
+                this.sps = nalu
+                if (this.debug)
+                    console.log("h265 sps", nalu.length)
+            }
+            let ret = this.parseH265SPS(this.sps.slice(4));
+            if (this.onNaluCallback) {
+                this.onNaluCallback({
+                    type: 'size_change',
+                    data: {"width" : ret.width, "height" : ret.height}
+                });
+            }
+            return;
+        } else if (nalu_type === 34) {
+            const next_pos = this.findSequence(nalu, [0, 0, 0, 1], 5)
+            if (next_pos > 0) {
+                this.pps = nalu.slice(0, next_pos)
+                if (this.debug)
+                    console.log("h265 pps", next_pos)
+                this.processBufferH265(nalu.slice(next_pos))
+            } else {
+                this.pps = nalu
+                if (this.debug)
+                    console.log("h265 pps", nalu.length)
+            }
+            return;
+        } else {
+            console.log("unknown h265 frame type", nalu[0], nalu[1], nalu[2], nalu[3], nalu_type)
+        }
+
+        if (this.pps != null && this.sps != null) {
+            if (this.onNaluCallback) {
+                this.onNaluCallback({
+                    type: 'init',
+                    data: { "width:": this.width, " height:": this.height, "pps": this.pps, "sps": this.sps, "vps": this.vps }
+                });
+            }
+            this.pps = null;
+            this.sps = null;
+        }
+        if (this.onNaluCallback) {
+            this.onNaluCallback({
+                type: 'nalu',
+                data: nalu
+            });
+        }
+    }
+
+    parseH265SPS(data) {
+        const gb = new ExpGolomb(data);
+        gb.readByte();
+        gb.readByte();
+        gb.readBits(4);
+        gb.readBits(3);
+        gb.readBits(1);
+        gb.readBits(2);
+        gb.readBits(1);
+        gb.readBits(5);
+        gb.readBits(32);
+        for (let i = 0; i < 6; i++) gb.readBits(8);
+        gb.readBits(8);
+        gb.readUEG();
+        let chroma_format_idc = gb.readUEG();
+        if (chroma_format_idc === 3) gb.readBits(1);
+        let pic_width_in_luma_samples = gb.readUEG();
+        let pic_height_in_luma_samples = gb.readUEG();
+        let conformance_window_flag = gb.readBool();
+        let conf_win_left_offset = 0, conf_win_right_offset = 0;
+        let conf_win_top_offset = 0, conf_win_bottom_offset = 0;
+        if (conformance_window_flag) {
+            conf_win_left_offset = gb.readUEG();
+            conf_win_right_offset = gb.readUEG();
+            conf_win_top_offset = gb.readUEG();
+            conf_win_bottom_offset = gb.readUEG();
+        }
+        let sub_width_c = (chroma_format_idc === 1 || chroma_format_idc === 2) ? 2 : 1;
+        let sub_height_c = (chroma_format_idc === 1) ? 2 : 1;
+        let width = pic_width_in_luma_samples - sub_width_c * (conf_win_right_offset + conf_win_left_offset);
+        let height = pic_height_in_luma_samples - sub_height_c * (conf_win_top_offset + conf_win_bottom_offset);
+        gb.destroy();
+        return { width, height };
     }
 }
