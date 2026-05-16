@@ -43,6 +43,7 @@ scpy_ctx = None
 client_sid = None
 message_queue = queue.Queue()
 video_bit_rate = config.VIDEO_BIT_RATE
+video_codec = config.VIDEO_CODEC
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = config.SECRET_KEY
@@ -82,10 +83,11 @@ def handle_connect():
         return False
     else:
         client_sid = request.sid
-        logger.info(f"接受连接, SID: {client_sid}, 视频码率: {video_bit_rate}, 编码: {config.VIDEO_CODEC}")
-        socketio.emit('codec_info', {'codec': config.VIDEO_CODEC}, to=client_sid)
+        logger.info(f"接受连接, SID: {client_sid}, 视频码率: {video_bit_rate}, 编码: {video_codec}")
+        logger.info(f"发送 codec_info 到前端: codec={video_codec}")
+        socketio.emit('codec_info', {'codec': video_codec}, to=client_sid)
         scpy_ctx = Scrcpy()
-        scpy_ctx.scrcpy_start(send_video_data, video_bit_rate)
+        scpy_ctx.scrcpy_start(send_video_data, video_bit_rate, video_codec)
         socketio.start_background_task(video_send_task)
         logger.info(f"连接完成, scpy_ctx: {scpy_ctx}")
 
@@ -111,7 +113,9 @@ def handle_control_data(data):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Web server for scrcpy')
     parser.add_argument('--video_bit_rate', default=config.VIDEO_BIT_RATE, help='scrcpy video bit rate')
+    parser.add_argument('--video_codec', default=config.VIDEO_CODEC, help='scrcpy video codec (h264 or h265)')
     args = parser.parse_args()
     video_bit_rate = args.video_bit_rate
-    logger.info(f"启动 Web-Scrcpy 服务器, 主机: {config.HOST}, 端口: {config.PORT}, 视频码率: {video_bit_rate}")
+    video_codec = args.video_codec
+    logger.info(f"启动 Web-Scrcpy 服务器, 主机: {config.HOST}, 端口: {config.PORT}, 码率: {video_bit_rate}, 编码: {video_codec}")
     socketio.run(app, host=config.HOST, port=config.PORT)

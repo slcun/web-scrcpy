@@ -43,7 +43,7 @@ class VideoParser {
                 const id = new DataView(this.buffer.buffer).getInt32(0, false);
                 this.width = new DataView(this.buffer.buffer).getInt32(4, false);
                 this.height = new DataView(this.buffer.buffer).getInt32(8, false);
-                console.log("width:" + this.width + " height:" + this.height);
+                console.log("[DEBUG] screen_size: " + this.width + "x" + this.height);
                 if (this.onNaluCallback) {
                     this.onNaluCallback({
                         type: 'screen_size',
@@ -53,10 +53,11 @@ class VideoParser {
                 startIndex += 12;
             }
         } else while (this.buffer.length - startIndex > 12) {
-            // const flag = new DataView(this.buffer.buffer).getInt64(0, false);
             const size = new DataView(this.buffer.buffer).getInt32(startIndex + 8, false);
             if (this.buffer.length - startIndex >= 12 + size) {
                 const nalu = this.buffer.slice(startIndex + 12, startIndex + 12 + size);
+                const maxShow = Math.min(size, 80);
+                console.log("[DEBUG] scrcpy frame: scrcpy_size=" + size + " nalu_bytes=" + Array.from(nalu.slice(0, maxShow)).map(b => b.toString(16).padStart(2,'0')).join(' '));
                 this.processBuffer(nalu)
                 startIndex = startIndex + 12 + size;
             } else {
@@ -156,31 +157,26 @@ class VideoParser {
 
     processBufferH265(nalu) {
         const nalu_type = (nalu[4] >> 1) & 0x3f;
+        console.log("[DEBUG] H265 NALU: type=" + nalu_type + " size=" + nalu.length + " state(vps=" + (this.vps!=null) + " sps=" + (this.sps!=null) + " pps=" + (this.pps!=null) + ")");
         if (nalu_type === 0) {
-            if (this.debug)
-                console.log("H265 P frame", nalu.length)
         } else if (nalu_type === 1) {
-            if (this.debug)
-                console.log("H265 non-IDR frame", nalu.length)
         } else if (nalu_type === 19 || nalu_type === 20) {
-            if (this.debug)
-                console.log("H265 I frame", nalu.length)
         } else if (nalu_type === 32) {
-            this.vps = nalu;
-            if (this.debug)
-                console.log("h265 vps", nalu.length)
+            const next_pos = this.findSequence(nalu, [0, 0, 0, 1], 5)
+            if (next_pos > 0) {
+                this.vps = nalu.slice(0, next_pos)
+                this.processBufferH265(nalu.slice(next_pos))
+            } else {
+                this.vps = nalu
+            }
             return;
         } else if (nalu_type === 33) {
             const next_pos = this.findSequence(nalu, [0, 0, 0, 1], 5)
             if (next_pos > 0) {
                 this.sps = nalu.slice(0, next_pos)
-                if (this.debug)
-                    console.log("h265 sps", next_pos)
                 this.processBufferH265(nalu.slice(next_pos))
             } else {
                 this.sps = nalu
-                if (this.debug)
-                    console.log("h265 sps", nalu.length)
             }
             let ret = this.parseH265SPS(this.sps.slice(4));
             if (this.onNaluCallback) {
@@ -194,26 +190,24 @@ class VideoParser {
             const next_pos = this.findSequence(nalu, [0, 0, 0, 1], 5)
             if (next_pos > 0) {
                 this.pps = nalu.slice(0, next_pos)
-                if (this.debug)
-                    console.log("h265 pps", next_pos)
                 this.processBufferH265(nalu.slice(next_pos))
             } else {
                 this.pps = nalu
-                if (this.debug)
-                    console.log("h265 pps", nalu.length)
             }
             return;
         } else {
-            console.log("unknown h265 frame type", nalu[0], nalu[1], nalu[2], nalu[3], nalu_type)
+            console.log("[DEBUG] unknown h265 frame type:", nalu[0], nalu[1], nalu[2], nalu[3], nalu_type)
         }
 
-        if (this.pps != null && this.sps != null) {
+        if (this.pps != null && this.sps != null && this.vps != null) {
+            console.log("[DEBUG] H265 init callback FIRING");
             if (this.onNaluCallback) {
                 this.onNaluCallback({
                     type: 'init',
                     data: { "width:": this.width, " height:": this.height, "pps": this.pps, "sps": this.sps, "vps": this.vps }
                 });
             }
+            this.vps = null;
             this.pps = null;
             this.sps = null;
         }

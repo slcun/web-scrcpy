@@ -5,7 +5,7 @@ HOST = "0.0.0.0"
 PORT = 5800
 SECRET_KEY = "secret!"
 
-VIDEO_CODEC = "h264"
+VIDEO_CODEC = "h265"
 # 视频码率（bps，默认 1Mbps）
 VIDEO_BIT_RATE = "256000"
 

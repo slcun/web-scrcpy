@@ -29,11 +29,11 @@ class AdbClient:
         """
         forward.setup(local_port)
 
-    def start_server(self, video_bit_rate):
+    def start_server(self, video_bit_rate, video_codec):
         """
         启动设备端 scrcpy-server 进程。
         """
-        return shell.start_server_process(video_bit_rate)
+        return shell.start_server_process(video_bit_rate, video_codec)
 
     def cleanup_forward(self, local_port):
         """

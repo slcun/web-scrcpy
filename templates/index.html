@@ -83,47 +83,86 @@
     </div>
     <script src="/static/js/jmuxer.min.js"></script>
     <script>
-        let videoCodec = 'H264';
-
         const videoElement = document.getElementById('player');
-        const jmuxer = new JMuxer({
-            node: 'player',
-            mode: 'video',
-            videoCodec: videoCodec,
-            flushingTime: 0,
-            fps: 60,
-            clearBuffer: true,
-            onReady: () => {
-                document.getElementById('status').textContent = 'MSE done, waiting for data...';
-                if (videoElement) {
-                    videoElement.controls = false;
-                    videoElement.style.cssText = `
-                        -webkit-media-controls: none !important;
-                        -webkit-media-controls-enclosure: none !important;
-                        -webkit-media-controls-panel: none !important;
-                        -webkit-media-controls-play-button: none !important;
-                        -webkit-media-controls-timeline: none !important;
-                        -webkit-media-controls-current-time-display: none !important;
-                        -webkit-media-controls-time-remaining-display: none !important;
-                        -webkit-media-controls-mute-button: none !important;
-                        -webkit-media-controls-volume-slider: none !important;
-                        -webkit-media-controls-fullscreen-button: none !important;
-                        -moz-controls: none !important;
-                        -ms-media-controls: none !important;
-                    `;
+        let jmuxer = null;
+        let parser = null;
+        let input = null;
+        let initDone = false;
+        let pendingBuffer = [];
+
+        function createJmuxerAndParser(codec) {
+            const isH265 = codec === 'h265';
+            const jmuxerCodec = isH265 ? 'H265' : 'H264';
+            console.log('[DEBUG] createJmuxerAndParser: codec=' + codec + ', jmuxerCodec=' + jmuxerCodec);
+
+            jmuxer = new JMuxer({
+                node: 'player',
+                mode: 'video',
+                videoCodec: jmuxerCodec,
+                flushingTime: 0,
+                fps: 60,
+                clearBuffer: true,
+                onReady: () => {
+                    console.log('[DEBUG] JMuxer onReady fired');
+                    document.getElementById('status').textContent = 'MSE done, waiting for data...';
+                    if (videoElement) {
+                        videoElement.controls = false;
+                        videoElement.style.cssText = `
+                            -webkit-media-controls: none !important;
+                            -webkit-media-controls-enclosure: none !important;
+                            -webkit-media-controls-panel: none !important;
+                            -webkit-media-controls-play-button: none !important;
+                            -webkit-media-controls-timeline: none !important;
+                            -webkit-media-controls-current-time-display: none !important;
+                            -webkit-media-controls-time-remaining-display: none !important;
+                            -webkit-media-controls-mute-button: none !important;
+                            -webkit-media-controls-volume-slider: none !important;
+                            -webkit-media-controls-fullscreen-button: none !important;
+                            -moz-controls: none !important;
+                            -ms-media-controls: none !important;
+                        `;
+                    }
+                },
+                onError: (err) => {
+                    console.log('[DEBUG] JMuxer onError: ' + err.message);
+                    document.getElementById('status').textContent = 'MSE Error: ' + err.message;
                 }
-            },
-            onError: (err) => {
-                document.getElementById('status').textContent = 'MSE Error: ' + err.message;
+            });
+
+            parser = new VideoParser(({ type, data }) => {
+                if (type === 'nalu') {
+                    console.log('[DEBUG] VideoParser callback: nalu, size=' + data.byteLength + ', first4=' + Array.from(data.slice(0,4)).map(b => b.toString(16).padStart(2,'0')).join(' '));
+                    jmuxer.feed({ video: data });
+                } else if (type === 'init') {
+                    console.log('[DEBUG] VideoParser callback: init, vps=' + (data["vps"] ? data["vps"].byteLength + 'bytes' : 'null') + ', sps=' + data["sps"].byteLength + 'bytes, pps=' + data["pps"].byteLength + 'bytes');
+                    if (data["vps"]) {
+                        console.log('[DEBUG] Feeding VPS to jmuxer');
+                        jmuxer.feed({ video: data["vps"] });
+                    }
+                    console.log('[DEBUG] Feeding SPS to jmuxer');
+                    jmuxer.feed({ video: data["sps"] });
+                    console.log('[DEBUG] Feeding PPS to jmuxer');
+                    jmuxer.feed({ video: data["pps"] });
+                } else if (type === 'screen_size') {
+                    console.log('[DEBUG] VideoParser callback: screen_size, w=' + data["width"] + ', h=' + data["height"]);
+                    initInput(data["width"], data["height"]);
+                } else if (type === 'size_change') {
+                    console.log('[DEBUG] VideoParser callback: size_change, w=' + data["width"] + ', h=' + data["height"]);
+                    if (input) {
+                        input.resizeScreen(data["width"], data["height"]);
+                    }
+                }
+            }, isH265, codec);
+
+            // 处理 codec_info 前缓存的视频数据
+            for (const buf of pendingBuffer) {
+                console.log('[DEBUG] Feeding cached data, size=' + buf.byteLength);
+                parser.appendData(buf);
             }
-        });
+            pendingBuffer = [];
+            initDone = true;
+        }
 
-        const socket = io({
-            reconnection: false,
-            autoConnect: true
-        });
-
-        var input = null;
         function initInput(width, height) {
             function input_data_cb(data) {
                 socket.emit('control_data', data);
@@ -179,40 +218,30 @@
             });
         }
 
-        const parser = new VideoParser(({ type, data }) => {
-            if (type === 'nalu') {
-                jmuxer.feed({
-                    video: data
-                });
-            } else if (type === 'init') {
-                jmuxer.feed({
-                    video: data["sps"]
-                });
-                jmuxer.feed({
-                    video: data["pps"]
-                });
-            } else if (type === 'screen_size') {
-                initInput(data["width"], data["height"]);
-            } else if (type === 'size_change') {
-                if (input) {
-                    input.resizeScreen(data["width"], data["height"]);
-                }
-            }
-        }, false, videoCodec === 'H265' ? 'h265' : 'h264');
-
-        socket.on('video_data', (data) => {
-            const newData = new Uint8Array(data);
-            parser.appendData(newData);
+        const socket = io({
+            reconnection: false,
+            autoConnect: true
         });
 
         socket.on('codec_info', (data) => {
-            videoCodec = data.codec && data.codec.toLowerCase() === 'h265' ? 'H265' : 'H264';
-            jmuxer.options.videoCodec = videoCodec;
-            parser.codec = videoCodec === 'H265' ? 'h265' : 'h264';
+            console.log('[DEBUG] Received codec_info:', data);
+            const codec = data.codec && data.codec.toLowerCase() === 'h265' ? 'h265' : 'h264';
+            console.log('[DEBUG] Using codec:', codec);
+            createJmuxerAndParser(codec);
+        });
+
+        socket.on('video_data', (data) => {
+            const newData = new Uint8Array(data);
+            console.log('[DEBUG] Received video_data, size=' + newData.byteLength + ', initDone=' + initDone + ', pendingBuffer.length=' + pendingBuffer.length + ', firstBytes=' + Array.from(newData.slice(0, Math.min(20, newData.byteLength))).map(b => b.toString(16).padStart(2,'0')).join(' '));
+            if (initDone) {
+                parser.appendData(newData);
+            } else {
+                pendingBuffer.push(newData);
+            }
         });
 
         socket.on('connect', () => {
-            document.getElementById('status').textContent = 'connected, receiving video data...';
+            document.getElementById('status').textContent = 'connected, waiting for codec info...';
         });
 
         socket.addEventListener('close', () => {
@@ -222,6 +251,27 @@
         socket.addEventListener('error', (error) => {
             document.getElementById('status').textContent = 'websocket error: ' + error.message;
         });
+
+        // 监听 video 元素的错误事件
+        videoElement.addEventListener('error', (e) => {
+            console.log('[DEBUG] video element error:', videoElement.error ? videoElement.error.message : 'unknown');
+        });
+        videoElement.addEventListener('stalled', () => console.log('[DEBUG] video stalled'));
+        videoElement.addEventListener('waiting', () => console.log('[DEBUG] video waiting'));
+
+        // 定期检查 jmuxer 内部状态
+        setInterval(() => {
+            if (jmuxer) {
+                console.log('[DEBUG] jmuxer state:', JSON.stringify({
+                    readyState: videoElement.readyState,
+                    networkState: videoElement.networkState,
+                    videoWidth: videoElement.videoWidth,
+                    videoHeight: videoElement.videoHeight,
+                    paused: videoElement.paused,
+                    buffered: videoElement.buffered ? videoElement.buffered.length : 0
+                }));
+            }
+        }, 5000);
 
         window.addEventListener('beforeunload', () => {
             socket.disconnect();

@@ -6,8 +6,10 @@
 
 ```bash
 pip install -r requirements.txt
-python app.py                     # 默认 0.0.0.0:5000
-python app.py --video_bit_rate 4096000  # 自定义码率（覆盖 config.py）
+python app.py                                 # 默认 0.0.0.0:5800
+python app.py --video_bit_rate 4096000        # 自定义码率（覆盖 config.py）
+python app.py --video_codec h265              # H.265 编码（需浏览器支持）
+python app.py --video_bit_rate 1024000 --video_codec h265  # 组合使用
 ```
 
 编辑 `config.py` 可修改端口、secret key、adb 路径、缓冲区大小等参数。

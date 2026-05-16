@@ -10,10 +10,20 @@ logger = logging.getLogger('web-scrcpy')
 def find_adb_path():
     """
     查找 ADB 可执行文件路径。
-    优先使用项目自带的 adb.exe，否则使用 PATH 中的 adb。
+    查找顺序：
+      1. adb/adb.exe（当前 adb 模块目录）
+      2. scrcpy/adb.exe（旧位置，向后兼容）
+      3. PATH 中的 adb
     """
-    bundled = os.path.join(os.path.dirname(os.path.dirname(__file__)), "scrcpy", "adb.exe")
-    return bundled if os.path.exists(bundled) else "adb"
+    base = os.path.dirname(os.path.dirname(__file__))
+    candidates = [
+        os.path.join(base, "adb", "adb.exe"),
+        os.path.join(base, "scrcpy", "adb.exe"),
+    ]
+    for path in candidates:
+        if os.path.exists(path):
+            return path
+    return "adb"
 
 
 def _run_adb(args, check=False, capture_output=True, text=True):

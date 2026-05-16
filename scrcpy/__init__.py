@@ -25,11 +25,12 @@ class Scrcpy:
         self.android_process = None
         self.stop = False
         self.video_bit_rate = None
+        self.video_codec = None
         self.video_callback = None
 
     def start_server(self):
         """在设备上启动 scrcpy 服务器"""
-        self.android_process = self.adb.start_server(self.video_bit_rate)
+        self.android_process = self.adb.start_server(self.video_bit_rate, self.video_codec)
         # 读取并输出 stderr（scrcpy server 的日志输出）
         while not self.stop:
             stderr_line = self.android_process.stderr.readline().decode().strip()
@@ -42,20 +43,24 @@ class Scrcpy:
 
     def receive_video_data(self):
         """接收视频数据"""
-        logger.info(f"开始接收视频数据 ({config.VIDEO_CODEC.upper()})...")
+        logger.info(f"开始接收视频数据 ({self.video_codec.upper()})...")
         try:
             self.video_socket.recv(1)  # 接收连接确认字节
             logger.debug("视频连接确认完成")
 
             total_received = 0
+            frames = 0
             while not self.stop:
                 data = self.video_socket.recv(config.VIDEO_RECV_SIZE)
                 if not data:
                     logger.debug("视频数据连接关闭")
                     break
                 total_received += len(data)
+                frames += 1
                 self.video_callback(data)
-            logger.info(f"视频数据接收停止, 累计接收: {total_received} 字节")
+                if frames <= 3:
+                    logger.info(f"视频数据块 #{frames}: {len(data)} 字节, 前20字节: {data[:20].hex()}")
+            logger.info(f"视频数据接收停止, 累计接收: {total_received} 字节, 总帧数: {frames}")
         except Exception as e:
             logger.error(f"接收视频数据异常: {e}")
 
@@ -94,12 +99,13 @@ class Scrcpy:
         except Exception as e:
             logger.error(f"控制连接异常: {e}")
 
-    def scrcpy_start(self, video_callback, video_bit_rate):
+    def scrcpy_start(self, video_callback, video_bit_rate, video_codec=None):
         """启动 Scrcpy 服务"""
         self.video_bit_rate = video_bit_rate
+        self.video_codec = video_codec or config.VIDEO_CODEC
         self.video_callback = video_callback
         self.stop = False
-        logger.info(f"启动 Scrcpy 服务, 视频码率: {video_bit_rate}")
+        logger.info(f"启动 Scrcpy 服务, 码率: {video_bit_rate}, 编码: {self.video_codec}")
 
         # 检测设备
         try:
