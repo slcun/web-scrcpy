@@ -11,6 +11,7 @@ class ScrcpyInput {
         let rightButtonIsPressed = false;
 
         document.addEventListener('mousedown', (event) => {
+            console.log("[DEBUG] mousedown: target=" + event.target.id + " button=" + event.button + " containsVideo=" + videoElement.contains(event.target));
             const rect = videoElement.getBoundingClientRect();
             const local_x = event.clientX - rect.left;
             const local_y = event.clientY - rect.top;
@@ -22,8 +23,13 @@ class ScrcpyInput {
                     const coords = this.mapToDeviceCoords(local_x, local_y, rect);
                     mouseX = coords.x;
                     mouseY = coords.y;
+                    console.log("[DEBUG] mousedown: local=" + local_x.toFixed(0) + "," + local_y.toFixed(0) +
+                        " rect=" + rect.width.toFixed(0) + "x" + rect.height.toFixed(0) +
+                        " coords=" + mouseX + "," + mouseY +
+                        " devSize=" + this.width + "x" + this.height);
 
                     let data = this.createTouchProtocolData(0, mouseX, mouseY, this.width, this.height, 0, 0, 65535);
+                    console.log("[DEBUG] mousedown: sending control data, callback exists=" + (typeof this.callback));
                     this.callback(data);
                 } else if (event.button === 2) {
                     rightButtonIsPressed = true;
@@ -86,6 +92,7 @@ class ScrcpyInput {
         let activeTouchId = null;
         videoElement.addEventListener('touchstart', (event) => {
             event.preventDefault();
+            console.log("[DEBUG] touchstart: touches=" + event.changedTouches.length);
             const touch = event.changedTouches[0];
             activeTouchId = touch.identifier;
             const rect = videoElement.getBoundingClientRect();

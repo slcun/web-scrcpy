@@ -219,7 +219,19 @@ class VideoParser {
         }
     }
 
+    removeEmulationPrevention(data) {
+        const out = [];
+        for (let i = 0; i < data.length; i++) {
+            if (i >= 2 && data[i - 2] === 0x00 && data[i - 1] === 0x00 && data[i] === 0x03) {
+                continue;
+            }
+            out.push(data[i]);
+        }
+        return new Uint8Array(out);
+    }
+
     parseH265SPS(data) {
+        data = this.removeEmulationPrevention(data);
         const gb = new ExpGolomb(data);
         gb.readByte();
         gb.readByte();
