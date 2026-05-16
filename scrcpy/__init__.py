@@ -137,6 +137,7 @@ class Scrcpy:
         # video connection
         logger.info("建立视频连接...")
         self.video_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.video_socket.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
         self.video_socket.connect(('localhost', config.LOCAL_PORT))
         logger.info("视频连接建立成功")
 
