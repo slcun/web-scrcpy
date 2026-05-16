@@ -4,6 +4,7 @@ class ScrcpyInput {
         this.width = width
         this.height = height
         this.debug = debug
+        this.videoElement = videoElement
         let mouseX = null;
         let mouseY = null;
         let leftButtonIsPressed = false;
@@ -18,8 +19,9 @@ class ScrcpyInput {
                 if (event.button === 0) {
                     leftButtonIsPressed = true;
 
-                    mouseX = (local_x / (rect.right - rect.left)) * this.width;
-                    mouseY = (local_y / (rect.bottom - rect.top)) * this.height;
+                    const coords = this.mapToDeviceCoords(local_x, local_y, rect);
+                    mouseX = coords.x;
+                    mouseY = coords.y;
 
                     let data = this.createTouchProtocolData(0, mouseX, mouseY, this.width, this.height, 0, 0, 65535);
                     this.callback(data);
@@ -43,8 +45,9 @@ class ScrcpyInput {
                 leftButtonIsPressed = false;
 
                 if (videoElement.contains(event.target)) {
-                    mouseX = (local_x / (rect.right - rect.left)) * this.width;
-                    mouseY = (local_y / (rect.bottom - rect.top)) * this.height;
+                    const coords = this.mapToDeviceCoords(local_x, local_y, rect);
+                    mouseX = coords.x;
+                    mouseY = coords.y;
                 }
     
                 let data = this.createTouchProtocolData(1, mouseX, mouseY, this.width, this.height, 0, 0, 0);
@@ -66,8 +69,9 @@ class ScrcpyInput {
             const local_y = event.clientY - rect.top;
 
             if (videoElement.contains(event.target)) {
-                mouseX = (local_x / (rect.right - rect.left)) * this.width;
-                mouseY = (local_y / (rect.bottom - rect.top)) * this.height;
+                const coords = this.mapToDeviceCoords(local_x, local_y, rect);
+                mouseX = coords.x;
+                mouseY = coords.y;
 
                 let data = this.createTouchProtocolData(2, mouseX, mouseY, this.width, this.height, 0, 0, 65535);
                 this.callback(data);
@@ -87,10 +91,9 @@ class ScrcpyInput {
             const rect = videoElement.getBoundingClientRect();
             const local_x = touch.clientX - rect.left;
             const local_y = touch.clientY - rect.top;
-            const touchX = (local_x / (rect.right - rect.left)) * this.width;
-            const touchY = (local_y / (rect.bottom - rect.top)) * this.height;
+            const coords = this.mapToDeviceCoords(local_x, local_y, rect);
 
-            let data = this.createTouchProtocolData(0, touchX, touchY, this.width, this.height, 0, 0, 65535);
+            let data = this.createTouchProtocolData(0, coords.x, coords.y, this.width, this.height, 0, 0, 65535);
             this.callback(data);
         }, { passive: false });
 
@@ -103,10 +106,9 @@ class ScrcpyInput {
                     const rect = videoElement.getBoundingClientRect();
                     const local_x = touch.clientX - rect.left;
                     const local_y = touch.clientY - rect.top;
-                    const touchX = (local_x / (rect.right - rect.left)) * this.width;
-                    const touchY = (local_y / (rect.bottom - rect.top)) * this.height;
+                    const coords = this.mapToDeviceCoords(local_x, local_y, rect);
 
-                    let data = this.createTouchProtocolData(1, touchX, touchY, this.width, this.height, 0, 0, 0);
+                    let data = this.createTouchProtocolData(1, coords.x, coords.y, this.width, this.height, 0, 0, 0);
                     this.callback(data);
                     break;
                 }
@@ -121,10 +123,9 @@ class ScrcpyInput {
                     const rect = videoElement.getBoundingClientRect();
                     const local_x = touch.clientX - rect.left;
                     const local_y = touch.clientY - rect.top;
-                    const touchX = (local_x / (rect.right - rect.left)) * this.width;
-                    const touchY = (local_y / (rect.bottom - rect.top)) * this.height;
+                    const coords = this.mapToDeviceCoords(local_x, local_y, rect);
 
-                    let data = this.createTouchProtocolData(2, touchX, touchY, this.width, this.height, 0, 0, 65535);
+                    let data = this.createTouchProtocolData(2, coords.x, coords.y, this.width, this.height, 0, 0, 65535);
                     this.callback(data);
                     break;
                 }
@@ -140,32 +141,14 @@ class ScrcpyInput {
         videoElement.addEventListener('wheel', (event) => {
             const hScroll = event.deltaX;
             const vScroll = event.deltaY;
-            const deltaMode = event.deltaMode;
-            const deltaZ = event.deltaZ;
-            const clientX = event.clientX;
-            const clientY = event.clientY;
             const button = event.button;
 
             const rect = videoElement.getBoundingClientRect();
-            const relativeX = clientX - rect.left;
-            const relativeY = clientY - rect.top;
-            const width = rect.right - rect.left;
-            const height = rect.bottom - rect.top;
+            const local_x = event.clientX - rect.left;
+            const local_y = event.clientY - rect.top;
+            const coords = this.mapToDeviceCoords(local_x, local_y, rect);
 
-            // switch (deltaMode) {
-            //     case WheelEvent.DOM_DELTA_PIXEL:
-            //         deltaModeValue.textContent = 'pixel';
-            //         break;
-            //     case WheelEvent.DOM_DELTA_LINE:
-            //         deltaModeValue.textContent = 'row';
-            //         break;
-            //     case WheelEvent.DOM_DELTA_PAGE:
-            //         deltaModeValue.textContent = 'page';
-            //         break;
-            //     default:
-            //         deltaModeValue.textContent = 'unknown';
-            // }
-            let data = this.createScrollProtocolData(relativeX, relativeY, width, height, hScroll, vScroll, button);
+            let data = this.createScrollProtocolData(coords.x, coords.y, this.width, this.height, hScroll, vScroll, button);
             this.callback(data);
         });
 
@@ -199,6 +182,32 @@ class ScrcpyInput {
     resizeScreen(width, height) {
         this.width = width;
         this.height = height;
+    }
+
+    mapToDeviceCoords(localX, localY, rect) {
+        const containerWidth = rect.right - rect.left;
+        const containerHeight = rect.bottom - rect.top;
+        const deviceAspect = this.width / this.height;
+        const containerAspect = containerWidth / containerHeight;
+
+        let displayWidth, displayHeight, offsetX, offsetY;
+
+        if (deviceAspect > containerAspect) {
+            displayWidth = containerWidth;
+            displayHeight = containerWidth / deviceAspect;
+            offsetX = 0;
+            offsetY = (containerHeight - displayHeight) / 2;
+        } else {
+            displayHeight = containerHeight;
+            displayWidth = containerHeight * deviceAspect;
+            offsetX = (containerWidth - displayWidth) / 2;
+            offsetY = 0;
+        }
+
+        const x = ((localX - offsetX) / displayWidth) * this.width;
+        const y = ((localY - offsetY) / displayHeight) * this.height;
+
+        return { x: Math.round(x), y: Math.round(y) };
     }
 
     mapToAndroidKeyCode(event) {

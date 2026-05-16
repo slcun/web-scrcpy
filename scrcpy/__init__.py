@@ -1,16 +1,19 @@
 from threading import Thread
-import subprocess
 import socket
 import time
 import config
 import logging
+from adb import AdbClient
 
 logger = logging.getLogger('web-scrcpy')
 
+
 class Scrcpy:
     """Scrcpy 服务器管理类，负责与 Android 设备的通信"""
-    
+
     def __init__(self):
+        self.adb = AdbClient()
+
         self.video_socket = None
         self.audio_socket = None
         self.control_socket = None
@@ -24,40 +27,10 @@ class Scrcpy:
         self.video_bit_rate = None
         self.video_callback = None
 
-    def push_server_to_device(self):
-        """将 scrcpy-server.jar 推送到 Android 设备"""
-        logger.info(f"推送 scrcpy-server.jar 到设备...")
-        logger.debug(f"ADB路径: {config.ADB_PATH}")
-        logger.debug(f"服务器路径: {config.SCRCPY_SERVER_PATH}")
-        logger.debug(f"设备路径: {config.DEVICE_SERVER_PATH}")
-        
-        result = subprocess.run([config.ADB_PATH, "push", config.SCRCPY_SERVER_PATH, config.DEVICE_SERVER_PATH], capture_output=True, text=True)
-        if result.returncode != 0:
-            logger.error(f"推送服务器失败: {result.stderr}")
-            return False
-        logger.info("scrcpy-server.jar 推送成功")
-        return True
-
-    def setup_adb_forward(self):
-        """设置 ADB 端口转发"""
-        logger.info(f"设置 ADB 端口转发: tcp:{config.LOCAL_PORT} -> localabstract:scrcpy")
-        try:
-            subprocess.run([config.ADB_PATH, "forward", f"tcp:{config.LOCAL_PORT}", "localabstract:scrcpy"], check=True)
-            logger.info("ADB 端口转发设置成功")
-        except subprocess.CalledProcessError as e:
-            logger.error(f"ADB 端口转发设置失败: {e}")
-            raise
-
     def start_server(self):
         """在设备上启动 scrcpy 服务器"""
-        logger.info("启动 scrcpy 服务器...")
-        cmd = [
-            config.ADB_PATH, "shell",
-            f"CLASSPATH={config.DEVICE_SERVER_PATH} app_process / com.genymobile.scrcpy.Server 3.1 tunnel_forward=true log_level=VERBOSE video_codec={config.VIDEO_CODEC} video_bit_rate=" + self.video_bit_rate
-        ]
-        logger.debug(f"服务器启动命令: {' '.join(cmd)}")
-        
-        self.android_process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        self.android_process = self.adb.start_server(self.video_bit_rate)
+        # 读取并输出 stderr（scrcpy server 的日志输出）
         while not self.stop:
             stderr_line = self.android_process.stderr.readline().decode().strip()
             if not stderr_line:
@@ -73,7 +46,7 @@ class Scrcpy:
         try:
             self.video_socket.recv(1)  # 接收连接确认字节
             logger.debug("视频连接确认完成")
-            
+
             total_received = 0
             while not self.stop:
                 data = self.video_socket.recv(config.VIDEO_RECV_SIZE)
@@ -92,7 +65,7 @@ class Scrcpy:
         try:
             self.audio_socket.recv(1)  # 接收连接确认字节
             logger.debug("音频连接确认完成")
-            
+
             total_received = 0
             while not self.stop:
                 data = self.audio_socket.recv(config.AUDIO_RECV_SIZE)
@@ -110,7 +83,7 @@ class Scrcpy:
         try:
             self.control_socket.recv(1)  # 接收连接确认字节
             logger.debug("控制连接确认完成")
-            
+
             while not self.stop:
                 data = self.control_socket.recv(config.CONTROL_RECV_SIZE)
                 if not data:
@@ -128,22 +101,28 @@ class Scrcpy:
         self.stop = False
         logger.info(f"启动 Scrcpy 服务, 视频码率: {video_bit_rate}")
 
-        logger.info("检查 ADB 设备...")
-        result = subprocess.run([config.ADB_PATH, "devices"], capture_output=True, text=True)
-        logger.debug(f"ADB 设备列表: {result.stdout}")
-        
-        if "device" not in result.stdout:
-            logger.error("未找到 Android 设备，请通过 USB 连接设备并开启 USB 调试")
-            return
-        
-        logger.info("检测到 Android 设备")
-
-        if not self.push_server_to_device():
-            logger.error("推送服务器文件失败")
+        # 检测设备
+        try:
+            self.adb.check_device()
+        except Exception as e:
+            logger.error(f"设备检测失败: {e}")
             return
 
-        self.setup_adb_forward()
-        
+        # 推送服务器
+        try:
+            self.adb.push_server(config.SCRCPY_SERVER_PATH, config.DEVICE_SERVER_PATH)
+        except Exception as e:
+            logger.error(f"推送服务器文件失败: {e}")
+            return
+
+        # 设置端口转发
+        try:
+            self.adb.setup_forward(config.LOCAL_PORT)
+        except Exception as e:
+            logger.error(f"端口转发设置失败: {e}")
+            return
+
+        # 启动设备端服务器
         logger.info("启动设备端服务器线程...")
         self.android_thread = Thread(target=self.start_server, daemon=True)
         self.android_thread.start()
@@ -180,21 +159,21 @@ class Scrcpy:
         """停止 Scrcpy 服务"""
         logger.info("停止 Scrcpy 服务...")
         self.stop = True
-        
+
         try:
             self.video_socket.shutdown(socket.SHUT_RDWR)
             self.video_socket.close()
             logger.debug("视频 socket 关闭成功")
         except Exception as e:
             logger.error(f"关闭视频 socket 失败: {e}")
-        
+
         try:
             self.audio_socket.shutdown(socket.SHUT_RDWR)
             self.audio_socket.close()
             logger.debug("音频 socket 关闭成功")
         except Exception as e:
             logger.error(f"关闭音频 socket 失败: {e}")
-        
+
         try:
             self.control_socket.shutdown(socket.SHUT_RDWR)
             self.control_socket.close()
@@ -206,12 +185,13 @@ class Scrcpy:
         self.video_thread.join()
         self.audio_thread.join()
         self.control_thread.join()
-        
+
         if self.android_process:
             self.android_process.terminate()
             logger.debug("设备端进程已终止")
-        
+
         self.android_thread.join()
+        self.adb.cleanup_forward(config.LOCAL_PORT)
         logger.info("Scrcpy 服务已停止")
 
     def scrcpy_send_control(self, data):
