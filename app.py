@@ -57,9 +57,11 @@ def video_send_task():
     """视频数据发送任务：从消息队列获取数据并发送给客户端"""
     global client_sid
     logger.info("视频发送任务启动")
-    while client_sid != None:
+    while client_sid is not None:
         try:
             message = message_queue.get(timeout=0.01)
+            if client_sid is None:
+                break
             socketio.emit('video_data', message, to=client_sid)
         except queue.Empty:
             pass
@@ -67,10 +69,18 @@ def video_send_task():
             logger.error(f"发送视频数据失败: {e}")
         finally:
             socketio.sleep(0.001)
+    # 清空队列中残留数据，防止内存泄漏
+    while not message_queue.empty():
+        try:
+            message_queue.get_nowait()
+        except queue.Empty:
+            break
     logger.info("视频发送任务停止")
 
 def send_video_data(data):
-    message_queue.put(data)
+    """视频数据回调：仅在有客户端连接时入队"""
+    if client_sid is not None:
+        message_queue.put(data)
 
 @socketio.on('connect')
 def handle_connect():

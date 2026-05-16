@@ -80,6 +80,13 @@
     </div>
     <div class="video-wrapper">
         <video id="player" autoplay muted webkit-playsinline playsinline x5-playsinline></video>
+        <div id="stats"
+             style="position:absolute;top:8px;right:8px;color:#0f0;font-family:monospace;font-size:13px;text-shadow:1px 1px 2px rgba(0,0,0,.8);pointer-events:none;line-height:1.6;display:none;">
+            <div id="stats-bitrate">---</div>
+            <div id="stats-fps">---</div>
+            <div id="stats-resolution">---</div>
+            <div id="stats-codec">---</div>
+        </div>
     </div>
     <script src="/static/js/jmuxer.min.js"></script>
     <script>
@@ -89,6 +96,57 @@
         let input = null;
         let initDone = false;
         let pendingBuffer = [];
+
+        // 视频统计（码率、帧率等）
+        const statsTracker = {
+            sampleInterval: 2,
+            bytesReceived: 0,
+            frameCount: 0,
+            samples: [],
+            width: 0,
+            height: 0,
+            codec: '',
+
+            onFrame(bytes) {
+                this.bytesReceived += bytes;
+                this.frameCount++;
+            },
+
+            onResolution(w, h) {
+                this.width = w;
+                this.height = h;
+            },
+
+            tick() {
+                this.samples.push({ bytes: this.bytesReceived, frames: this.frameCount });
+                if (this.samples.length > this.sampleInterval) {
+                    this.samples.shift();
+                }
+                this.updateDisplay();
+            },
+
+            updateDisplay() {
+                const bitrateEl = document.getElementById('stats-bitrate');
+                const fpsEl = document.getElementById('stats-fps');
+                const resEl = document.getElementById('stats-resolution');
+                const codecEl = document.getElementById('stats-codec');
+                if (!bitrateEl) return;
+
+                if (this.samples.length >= 2) {
+                    const a = this.samples[0];
+                    const b = this.samples[this.samples.length - 1];
+                    const dt = this.sampleInterval;
+                    const bitrate = (b.bytes - a.bytes) * 8 / dt;
+                    const fps = (b.frames - a.frames) / dt;
+                    bitrateEl.textContent = bitrate > 1e6
+                        ? (bitrate / 1e6).toFixed(1) + ' Mbps'
+                        : (bitrate / 1e3).toFixed(0) + ' Kbps';
+                    fpsEl.textContent = fps.toFixed(1) + ' FPS';
+                }
+                resEl.textContent = this.width + ' × ' + this.height;
+                codecEl.textContent = this.codec;
+            }
+        };
 
         function createJmuxerAndParser(codec) {
             const isH265 = codec === 'h265';
@@ -137,8 +195,10 @@
                     jmuxer.feed({ video: data["sps"] });
                     jmuxer.feed({ video: data["pps"] });
                 } else if (type === 'screen_size') {
+                    statsTracker.onResolution(data["width"], data["height"]);
                     initInput(data["width"], data["height"]);
                 } else if (type === 'size_change') {
+                    statsTracker.onResolution(data["width"], data["height"]);
                     if (input) {
                         input.resizeScreen(data["width"], data["height"]);
                     }
@@ -150,6 +210,9 @@
                 parser.appendData(buf);
             }
             pendingBuffer = [];
+
+            statsTracker.codec = codec.toUpperCase();
+            document.getElementById('stats').style.display = 'block';
             initDone = true;
         }
 
@@ -220,6 +283,7 @@
 
         socket.on('video_data', (data) => {
             const newData = new Uint8Array(data);
+            statsTracker.onFrame(data.byteLength);
             if (initDone) {
                 parser.appendData(newData);
             } else {
@@ -245,6 +309,17 @@
 
         window.addEventListener('beforeunload', () => {
             socket.disconnect();
+        });
+
+        // 每 1s 刷新统计显示
+        setInterval(() => statsTracker.tick(), 1000);
+
+        // 按 s 键切换统计面板
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 's' && !e.ctrlKey && !e.metaKey) {
+                const el = document.getElementById('stats');
+                el.style.display = el.style.display === 'none' ? 'block' : 'none';
+            }
         });
     </script>
 </body>

@@ -19,7 +19,7 @@ DEVICE_SERVER_PATH = "/data/local/tmp/scrcpy-server.jar"
 LOCAL_PORT = 5555
 
 # 最大帧率（0 表示不限制）
-MAX_FPS = 0
+MAX_FPS = 15
 
 # 保持设备唤醒（防止屏幕熄灭）
 STAY_AWAKE = False

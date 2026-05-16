@@ -189,15 +189,23 @@ class Scrcpy:
             logger.error(f"关闭控制 socket 失败: {e}")
 
         logger.debug("等待后台线程结束...")
-        self.video_thread.join()
-        self.audio_thread.join()
-        self.control_thread.join()
+        self.video_thread.join(timeout=5)
+        self.audio_thread.join(timeout=5)
+        self.control_thread.join(timeout=5)
+        if self.video_thread.is_alive():
+            logger.warning("视频线程未在超时内退出")
+        if self.audio_thread.is_alive():
+            logger.warning("音频线程未在超时内退出")
+        if self.control_thread.is_alive():
+            logger.warning("控制线程未在超时内退出")
 
         if self.android_process:
             self.android_process.terminate()
             logger.debug("设备端进程已终止")
 
-        self.android_thread.join()
+        self.android_thread.join(timeout=5)
+        if self.android_thread.is_alive():
+            logger.warning("设备端服务器线程未在超时内退出")
         self.adb.cleanup_forward(config.LOCAL_PORT)
         logger.info("Scrcpy 服务已停止")
 

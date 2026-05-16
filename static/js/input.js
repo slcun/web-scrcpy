@@ -207,7 +207,10 @@ class ScrcpyInput {
         const x = ((localX - offsetX) / displayWidth) * this.width;
         const y = ((localY - offsetY) / displayHeight) * this.height;
 
-        return { x: Math.round(x), y: Math.round(y) };
+        return {
+            x: Math.max(0, Math.min(this.width, Math.round(x))),
+            y: Math.max(0, Math.min(this.height, Math.round(y)))
+        };
     }
 
     mapToAndroidKeyCode(event) {
@@ -345,6 +348,7 @@ class ScrcpyInput {
 
     createTouchProtocolData(action, x, y, width, height, actionButton, buttons, pressure) {
         const type = 2; // touch event
+        const UINT16_MAX = 65535;
 
         const buffer = new ArrayBuffer(1 + 1 + 8 + 4 + 4 + 2 + 2 + 2 + 4 + 4);
         const view = new DataView(buffer);
@@ -378,9 +382,9 @@ class ScrcpyInput {
         offset += 4;
         view.setInt32(offset, y, false);
         offset += 4;
-        view.setUint16(offset, width, false);
+        view.setUint16(offset, Math.min(width, UINT16_MAX), false);
         offset += 2;
-        view.setUint16(offset, height, false);
+        view.setUint16(offset, Math.min(height, UINT16_MAX), false);
         offset += 2;
 
         view.setInt16(offset, pressure, false);
@@ -419,6 +423,7 @@ class ScrcpyInput {
 
     createScrollProtocolData(x, y, width, height, hScroll, vScroll, button) {
         const type = 3; // scroll event
+        const UINT16_MAX = 65535;
 
         const buffer = new ArrayBuffer(1 + 4 + 4 + 2 + 2 + 2 + 2 + 4);
         const view = new DataView(buffer);
@@ -431,9 +436,9 @@ class ScrcpyInput {
         offset += 4;
         view.setInt32(offset, y, false);
         offset += 4;
-        view.setUint16(offset, width, false);
+        view.setUint16(offset, Math.min(width, UINT16_MAX), false);
         offset += 2;
-        view.setUint16(offset, height, false);
+        view.setUint16(offset, Math.min(height, UINT16_MAX), false);
         offset += 2;
 
         view.setInt16(offset, hScroll, false);

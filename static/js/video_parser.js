@@ -43,7 +43,7 @@ class VideoParser {
                 const id = new DataView(this.buffer.buffer).getInt32(0, false);
                 this.width = new DataView(this.buffer.buffer).getInt32(4, false);
                 this.height = new DataView(this.buffer.buffer).getInt32(8, false);
-                console.log("[DEBUG] screen_size: " + this.width + "x" + this.height);
+                if (this.debug) { console.log("[DEBUG] screen_size: " + this.width + "x" + this.height); }
                 if (this.onNaluCallback) {
                     this.onNaluCallback({
                         type: 'screen_size',
@@ -56,7 +56,7 @@ class VideoParser {
             const size = new DataView(this.buffer.buffer).getInt32(startIndex + 8, false);
             if (this.buffer.length - startIndex >= 12 + size) {
                 const nalu = this.buffer.slice(startIndex + 12, startIndex + 12 + size);
-                if (this.debug) { console.log("[DEBUG] scrcpy frame: scrcpy_size=" + size); }
+                // if (this.debug) { console.log("[DEBUG] scrcpy frame: scrcpy_size=" + size); }
                 this.processBuffer(nalu)
                 startIndex = startIndex + 12 + size;
             } else {
@@ -132,7 +132,7 @@ class VideoParser {
                     console.log("pps", nalu.length)
             }
             return;
-        } else {
+        } else if (this.debug) {
             console.log("unknown h264 frame type", nalu[0], nalu[1], nalu[2], nalu[3], nalu_type)
         }
 
@@ -196,7 +196,7 @@ class VideoParser {
         }
 
         if (this.pps != null && this.sps != null && this.vps != null) {
-            console.log("[DEBUG] H265 init callback FIRING");
+            if (this.debug) { console.log("[DEBUG] H265 init callback FIRING"); }
             if (this.onNaluCallback) {
                 this.onNaluCallback({
                     type: 'init',
