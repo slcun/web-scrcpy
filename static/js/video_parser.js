@@ -2,6 +2,7 @@ class VideoParser {
     constructor(onNaluCallback, debug = false, codec = 'h264') {
         this.debug = debug
         this.buffer = new Uint8Array(0);
+        this.maxBufferSize = 1024 * 1024; // 1MB 上限，防止异常数据导致内存暴涨
         this.codec = codec.toLowerCase();
         this.name = null;
         this.width = null;
@@ -23,7 +24,14 @@ class VideoParser {
         this.scrcpyProcessBuffer();
     }
 
+    _makeDataView(offset) {
+        return new DataView(this.buffer.buffer, this.buffer.byteOffset + offset, this.buffer.byteLength - offset);
+    }
+
     scrcpyProcessBuffer() {
+        if (this.buffer.length > this.maxBufferSize) {
+            this.buffer = this.buffer.slice(-this.maxBufferSize);
+        }
         let startIndex = 0;
         if (this.name == null) {
             if (this.buffer.length >= 64) {
@@ -40,9 +48,10 @@ class VideoParser {
             }
         } else if (this.width == null) {
             if (this.buffer.length >= 12) {
-                const id = new DataView(this.buffer.buffer).getInt32(0, false);
-                this.width = new DataView(this.buffer.buffer).getInt32(4, false);
-                this.height = new DataView(this.buffer.buffer).getInt32(8, false);
+                const view = this._makeDataView(0);
+                const id = view.getInt32(0, false);
+                this.width = view.getInt32(4, false);
+                this.height = view.getInt32(8, false);
                 if (this.debug) { console.log("[DEBUG] screen_size: " + this.width + "x" + this.height); }
                 if (this.onNaluCallback) {
                     this.onNaluCallback({
@@ -53,7 +62,8 @@ class VideoParser {
                 startIndex += 12;
             }
         } else while (this.buffer.length - startIndex > 12) {
-            const size = new DataView(this.buffer.buffer).getInt32(startIndex + 8, false);
+            const view = this._makeDataView(startIndex);
+            const size = view.getInt32(8, false);
             if (this.buffer.length - startIndex >= 12 + size) {
                 const nalu = this.buffer.slice(startIndex + 12, startIndex + 12 + size);
                 // if (this.debug) { console.log("[DEBUG] scrcpy frame: scrcpy_size=" + size); }

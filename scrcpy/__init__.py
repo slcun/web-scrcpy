@@ -1,37 +1,33 @@
+"""Scrcpy 服务编排"""
+
 from threading import Thread
-import socket
 import time
 import config
 import logging
 from adb import AdbClient
+from . import connection as conn
+from . import receiver as recv
+from . import control as ctrl
 
 logger = logging.getLogger('web-scrcpy')
 
 
 class Scrcpy:
-    """Scrcpy 服务器管理类，负责与 Android 设备的通信"""
+    """Scrcpy 服务器管理器，负责与 Android 设备的通信"""
 
     def __init__(self):
         self.adb = AdbClient()
-
-        self.video_socket = None
-        self.audio_socket = None
-        self.control_socket = None
-
-        self.android_thread = None
-        self.video_thread = None
-        self.audio_thread = None
-        self.control_thread = None
+        self.sockets = {}
+        self.threads = {}
         self.android_process = None
+        self.android_thread = None
         self.stop = False
         self.video_bit_rate = None
         self.video_codec = None
         self.video_callback = None
 
-    def start_server(self):
-        """在设备上启动 scrcpy 服务器"""
-        self.android_process = self.adb.start_server(self.video_bit_rate, self.video_codec)
-        # 读取并输出 stderr（scrcpy server 的日志输出）
+    def _read_server_stderr(self):
+        """读取 scrcpy server 的 stderr 输出"""
         while not self.stop:
             stderr_line = self.android_process.stderr.readline().decode().strip()
             if not stderr_line:
@@ -41,64 +37,6 @@ class Scrcpy:
         self.android_process.wait()
         logger.info("Scrcpy 服务器停止")
 
-    def receive_video_data(self):
-        """接收视频数据"""
-        logger.info(f"开始接收视频数据 ({self.video_codec.upper()})...")
-        try:
-            self.video_socket.recv(1)  # 接收连接确认字节
-            logger.debug("视频连接确认完成")
-
-            total_received = 0
-            frames = 0
-            while not self.stop:
-                data = self.video_socket.recv(config.VIDEO_RECV_SIZE)
-                if not data:
-                    logger.debug("视频数据连接关闭")
-                    break
-                total_received += len(data)
-                frames += 1
-                self.video_callback(data)
-                if frames <= 3:
-                    logger.info(f"视频数据块 #{frames}: {len(data)} 字节, 前20字节: {data[:20].hex()}")
-            logger.info(f"视频数据接收停止, 累计接收: {total_received} 字节, 总帧数: {frames}")
-        except Exception as e:
-            logger.error(f"接收视频数据异常: {e}")
-
-    def receive_audio_data(self):
-        """接收音频数据"""
-        logger.info("开始接收音频数据...")
-        try:
-            self.audio_socket.recv(1)  # 接收连接确认字节
-            logger.debug("音频连接确认完成")
-
-            total_received = 0
-            while not self.stop:
-                data = self.audio_socket.recv(config.AUDIO_RECV_SIZE)
-                if not data:
-                    logger.debug("音频数据连接关闭")
-                    break
-                total_received += len(data)
-            logger.info(f"音频数据接收停止, 累计接收: {total_received} 字节")
-        except Exception as e:
-            logger.error(f"接收音频数据异常: {e}")
-
-    def handle_control_conn(self):
-        """处理控制连接"""
-        logger.info("控制连接已建立...")
-        try:
-            self.control_socket.recv(1)  # 接收连接确认字节
-            logger.debug("控制连接确认完成")
-
-            while not self.stop:
-                data = self.control_socket.recv(config.CONTROL_RECV_SIZE)
-                if not data:
-                    logger.debug("控制连接关闭")
-                    break
-                logger.debug(f"收到控制消息, 长度: {len(data)}")
-            logger.info("控制连接停止")
-        except Exception as e:
-            logger.error(f"控制连接异常: {e}")
-
     def scrcpy_start(self, video_callback, video_bit_rate, video_codec=None):
         """启动 Scrcpy 服务"""
         self.video_bit_rate = video_bit_rate
@@ -107,59 +45,68 @@ class Scrcpy:
         self.stop = False
         logger.info(f"启动 Scrcpy 服务, 码率: {video_bit_rate}, 编码: {self.video_codec}")
 
-        # 检测设备
         try:
             self.adb.check_device()
         except Exception as e:
             logger.error(f"设备检测失败: {e}")
             return
 
-        # 推送服务器
         try:
             self.adb.push_server(config.SCRCPY_SERVER_PATH, config.DEVICE_SERVER_PATH)
         except Exception as e:
             logger.error(f"推送服务器文件失败: {e}")
             return
 
-        # 设置端口转发
         try:
             self.adb.setup_forward(config.LOCAL_PORT)
         except Exception as e:
             logger.error(f"端口转发设置失败: {e}")
             return
 
-        # 启动设备端服务器
-        logger.info("启动设备端服务器线程...")
-        self.android_thread = Thread(target=self.start_server, daemon=True)
+        self.android_process = self.adb.start_server(self.video_bit_rate, self.video_codec)
+        self.android_thread = Thread(target=self._read_server_stderr, daemon=True)
         self.android_thread.start()
+
+        # 等服务器完成初始化（adb shell 启动 Java 需要时间）
         time.sleep(1)
 
-        # video connection
-        logger.info("建立视频连接...")
-        self.video_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.video_socket.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
-        self.video_socket.connect(('localhost', config.LOCAL_PORT))
-        logger.info("视频连接建立成功")
+        # 建立三条连接（带重试）
+        try:
+            logger.info("建立视频连接...")
+            self.sockets['video'] = conn.connect_with_retry('localhost', config.LOCAL_PORT, nodelay=True)
+            logger.info("视频连接建立成功")
 
-        # audio connection
-        logger.info("建立音频连接...")
-        self.audio_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.audio_socket.connect(('localhost', config.LOCAL_PORT))
-        logger.info("音频连接建立成功")
+            logger.info("建立音频连接...")
+            self.sockets['audio'] = conn.connect_with_retry('localhost', config.LOCAL_PORT)
+            logger.info("音频连接建立成功")
 
-        # control connection
-        logger.info("建立控制连接...")
-        self.control_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.control_socket.connect(('localhost', config.LOCAL_PORT))
-        logger.info("控制连接建立成功")
+            logger.info("建立控制连接...")
+            self.sockets['control'] = conn.connect_with_retry('localhost', config.LOCAL_PORT)
+            logger.info("控制连接建立成功")
+        except ConnectionError as e:
+            logger.error(f"建立连接失败: {e}")
+            self.scrcpy_stop()
+            return
 
         logger.info("启动后台线程...")
-        self.video_thread = Thread(target=self.receive_video_data, daemon=True)
-        self.audio_thread = Thread(target=self.receive_audio_data, daemon=True)
-        self.control_thread = Thread(target=self.handle_control_conn, daemon=True)
-        self.video_thread.start()
-        self.audio_thread.start()
-        self.control_thread.start()
+        self.threads['video'] = Thread(
+            target=recv.receive_video,
+            args=(self.sockets['video'], self.video_callback, self.video_codec, lambda: self.stop),
+            daemon=True
+        )
+        self.threads['audio'] = Thread(
+            target=recv.receive_audio,
+            args=(self.sockets['audio'], lambda: self.stop),
+            daemon=True
+        )
+        self.threads['control'] = Thread(
+            target=recv.receive_control,
+            args=(self.sockets['control'], lambda: self.stop),
+            daemon=True
+        )
+        self.threads['video'].start()
+        self.threads['audio'].start()
+        self.threads['control'].start()
         logger.info("Scrcpy 服务启动完成")
 
     def scrcpy_stop(self):
@@ -167,52 +114,28 @@ class Scrcpy:
         logger.info("停止 Scrcpy 服务...")
         self.stop = True
 
-        try:
-            self.video_socket.shutdown(socket.SHUT_RDWR)
-            self.video_socket.close()
-            logger.debug("视频 socket 关闭成功")
-        except Exception as e:
-            logger.error(f"关闭视频 socket 失败: {e}")
+        for name in ('video', 'audio', 'control'):
+            conn.close_socket(self.sockets.pop(name, None), name)
 
-        try:
-            self.audio_socket.shutdown(socket.SHUT_RDWR)
-            self.audio_socket.close()
-            logger.debug("音频 socket 关闭成功")
-        except Exception as e:
-            logger.error(f"关闭音频 socket 失败: {e}")
-
-        try:
-            self.control_socket.shutdown(socket.SHUT_RDWR)
-            self.control_socket.close()
-            logger.debug("控制 socket 关闭成功")
-        except Exception as e:
-            logger.error(f"关闭控制 socket 失败: {e}")
-
-        logger.debug("等待后台线程结束...")
-        self.video_thread.join(timeout=5)
-        self.audio_thread.join(timeout=5)
-        self.control_thread.join(timeout=5)
-        if self.video_thread.is_alive():
-            logger.warning("视频线程未在超时内退出")
-        if self.audio_thread.is_alive():
-            logger.warning("音频线程未在超时内退出")
-        if self.control_thread.is_alive():
-            logger.warning("控制线程未在超时内退出")
+        for name in ('video', 'audio', 'control'):
+            t = self.threads.pop(name, None)
+            if t:
+                t.join(timeout=5)
+                if t.is_alive():
+                    logger.warning(f"{name} 线程未在超时内退出")
 
         if self.android_process:
             self.android_process.terminate()
             logger.debug("设备端进程已终止")
 
-        self.android_thread.join(timeout=5)
-        if self.android_thread.is_alive():
-            logger.warning("设备端服务器线程未在超时内退出")
+        if self.android_thread:
+            self.android_thread.join(timeout=5)
+            if self.android_thread.is_alive():
+                logger.warning("设备端服务器线程未在超时内退出")
+
         self.adb.cleanup_forward(config.LOCAL_PORT)
         logger.info("Scrcpy 服务已停止")
 
     def scrcpy_send_control(self, data):
         """发送控制数据到设备"""
-        try:
-            self.control_socket.send(data)
-            logger.debug(f"发送控制数据成功, 长度: {len(data)}")
-        except Exception as e:
-            logger.error(f"发送控制数据失败: {e}")
+        ctrl.send_control(self.sockets.get('control'), data)

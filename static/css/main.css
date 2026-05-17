@@ -1,0 +1,147 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html, body {
+    height: 100%;
+    background: black;
+    overflow: hidden;
+}
+
+.video-wrapper {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 58px;
+    bottom: 0;
+    overflow: hidden;
+}
+
+video {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    touch-action: none;
+    display: block;
+}
+
+/* -------- 顶部状态栏 -------- */
+#status-bar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    height: 36px;
+    padding: 0 12px;
+    background: rgba(0, 0, 0, 0.45);
+    user-select: none;
+    -webkit-user-select: none;
+    pointer-events: none;
+}
+
+#status-bar .brand {
+    font-size: 13px;
+    font-weight: 700;
+    color: #fff;
+}
+
+#status-bar #status {
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.45);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 200px;
+}
+
+/* -------- 右侧工具栏（视频外侧） -------- */
+#controls {
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: 58px;
+    height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+    background: rgba(18, 20, 24, 0.92);
+    border-left: 1px solid rgba(255, 255, 255, 0.06);
+    pointer-events: none;
+}
+
+#controls .ctrl-btn {
+    pointer-events: auto;
+}
+
+.ctrl-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+    height: 42px;
+    border: none;
+    border-radius: 8px;
+    background: transparent;
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 17px;
+    cursor: pointer;
+    position: relative;
+    transition: background 0.15s, color 0.15s;
+}
+
+.ctrl-btn:hover {
+    background: rgba(255, 255, 255, 0.12);
+    color: #fff;
+}
+
+.ctrl-btn:active {
+    background: rgba(255, 255, 255, 0.2);
+    transform: scale(0.88);
+}
+
+.ctrl-tip {
+    position: fixed;
+    padding: 5px 10px;
+    font-size: 12px;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-weight: 500;
+    color: #fff;
+    background: rgba(15, 15, 18, 0.92);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 6px;
+    white-space: nowrap;
+    pointer-events: none;
+    z-index: 200;
+    display: none;
+}
+
+.ctrl-divider {
+    width: 24px;
+    height: 1px;
+    background: rgba(255, 255, 255, 0.1);
+    margin: 2px 0;
+    pointer-events: none;
+}
+
+/* -------- 统计面板 -------- */
+#stats {
+    position: absolute;
+    top: 44px;
+    right: 10px;
+    background: rgba(0, 0, 0, 0.7);
+    padding: 6px 10px;
+    border-radius: 6px;
+    font-family: 'SF Mono', 'Cascadia Code', 'Consolas', monospace;
+    font-size: 12px;
+    line-height: 1.7;
+    color: #0f0;
+    pointer-events: none;
+    display: none;
+}

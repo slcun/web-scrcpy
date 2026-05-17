@@ -1,9 +1,10 @@
 import os
+import secrets
 
 # Flask 服务器配置
 HOST = "0.0.0.0"
 PORT = 5800
-SECRET_KEY = "secret!"
+SECRET_KEY = secrets.token_hex(16)
 
 VIDEO_CODEC = "h265"
 # 视频码率（bps，默认 1Mbps）

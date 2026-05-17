@@ -1,327 +1,48 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
-
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <link href="/static/css/font-awesome.min.css" rel="stylesheet">
-    <title>Web server for scrcpy</title>
-    <style>
-        html {
-            height: 100%;
-        }
-
-        body {
-            margin: 0;
-            height: 100dvh;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-            background-color: #333;
-        }
-
-        .video-wrapper {
-            flex: 1;
-            position: relative;
-            overflow: hidden;
-        }
-
-        video {
-            width: 100%;
-            height: 100%;
-            object-fit: contain;
-            background: black;
-            touch-action: none;
-        }
-
-        #status {
-            font-family: Arial, sans-serif;
-            color: #333;
-        }
-
-        .icon-container {
-            display: flex;
-            gap: 10px;
-            width: 100%;
-        }
-
-        .icon {
-            padding: 6px;
-            font-size: 18px;
-            cursor: pointer;
-            color: #eee;
-            transition: color 0.3s ease;
-        }
-
-        .icon:hover {
-            color: #007BFF;
-        }
-
-        .icon-container i:nth-child(4) {
-            margin-left: auto;
-        }
-    </style>
+    <link href="/static/css/main.css" rel="stylesheet">
+    <title>Web Scrcpy</title>
     <script src="/static/js/socket.io.js"></script>
-    <script src="/static/js/input.js"></script>
     <script src="/static/js/exp-golomb.js"></script>
     <script src="/static/js/h264-sps-parser.js"></script>
     <script src="/static/js/video_parser.js"></script>
+    <script src="/static/js/input.js"></script>
 </head>
-
 <body>
-    <p id="status" style="display: none;">connecting to device...</p>
-    <div class="icon-container">
-        <i id="power-icon" class="fa-solid fa-power-off icon"></i>
-        <i id="volume-down-icon" class="fa-solid fa-volume-down icon"></i>
-        <i id="volume-up-icon" class="fa-solid fa-volume-up icon"></i>
-        <i id="back-icon" class="fa-solid fa-arrow-left icon"></i>
-        <i id="home-icon" class="fa-solid fa-house icon"></i>
-        <i id="menu-icon" class="fa-solid fa-bars icon"></i>
-    </div>
     <div class="video-wrapper">
         <video id="player" autoplay muted webkit-playsinline playsinline x5-playsinline></video>
-        <div id="stats"
-             style="position:absolute;top:8px;right:8px;color:#0f0;font-family:monospace;font-size:13px;text-shadow:1px 1px 2px rgba(0,0,0,.8);pointer-events:none;line-height:1.6;display:none;">
+
+        <div id="status-bar">
+            <span class="brand">Web Scrcpy</span>
+            <span id="status">正在连接...</span>
+        </div>
+
+        <div id="stats">
             <div id="stats-bitrate">---</div>
             <div id="stats-fps">---</div>
             <div id="stats-resolution">---</div>
             <div id="stats-codec">---</div>
         </div>
     </div>
+
+    <div id="controls">
+        <button class="ctrl-btn" data-tip="电源" id="power-icon"><i class="fa-solid fa-power-off"></i></button>
+        <button class="ctrl-btn" data-tip="音量－" id="volume-down-icon"><i class="fa-solid fa-volume-down"></i></button>
+        <button class="ctrl-btn" data-tip="音量＋" id="volume-up-icon"><i class="fa-solid fa-volume-up"></i></button>
+        <div class="ctrl-divider"></div>
+        <button class="ctrl-btn" data-tip="返回" id="back-icon"><i class="fa-solid fa-arrow-left"></i></button>
+        <button class="ctrl-btn" data-tip="主页" id="home-icon"><i class="fa-solid fa-house"></i></button>
+        <button class="ctrl-btn" data-tip="菜单" id="menu-icon"><i class="fa-solid fa-bars"></i></button>
+        <div class="ctrl-divider"></div>
+        <button class="ctrl-btn" data-tip="截图" id="screenshot-icon"><i class="fa-solid fa-camera"></i></button>
+    </div>
+
     <script src="/static/js/jmuxer.min.js"></script>
-    <script>
-        const videoElement = document.getElementById('player');
-        let jmuxer = null;
-        let parser = null;
-        let input = null;
-        let initDone = false;
-        let pendingBuffer = [];
-
-        // 视频统计（码率、帧率等）
-        const statsTracker = {
-            sampleInterval: 2,
-            bytesReceived: 0,
-            frameCount: 0,
-            samples: [],
-            width: 0,
-            height: 0,
-            codec: '',
-
-            onFrame(bytes) {
-                this.bytesReceived += bytes;
-                this.frameCount++;
-            },
-
-            onResolution(w, h) {
-                this.width = w;
-                this.height = h;
-            },
-
-            tick() {
-                this.samples.push({ bytes: this.bytesReceived, frames: this.frameCount });
-                if (this.samples.length > this.sampleInterval) {
-                    this.samples.shift();
-                }
-                this.updateDisplay();
-            },
-
-            updateDisplay() {
-                const bitrateEl = document.getElementById('stats-bitrate');
-                const fpsEl = document.getElementById('stats-fps');
-                const resEl = document.getElementById('stats-resolution');
-                const codecEl = document.getElementById('stats-codec');
-                if (!bitrateEl) return;
-
-                if (this.samples.length >= 2) {
-                    const a = this.samples[0];
-                    const b = this.samples[this.samples.length - 1];
-                    const dt = this.sampleInterval;
-                    const bitrate = (b.bytes - a.bytes) * 8 / dt;
-                    const fps = (b.frames - a.frames) / dt;
-                    bitrateEl.textContent = bitrate > 1e6
-                        ? (bitrate / 1e6).toFixed(1) + ' Mbps'
-                        : (bitrate / 1e3).toFixed(0) + ' Kbps';
-                    fpsEl.textContent = fps.toFixed(1) + ' FPS';
-                }
-                resEl.textContent = this.width + ' × ' + this.height;
-                codecEl.textContent = this.codec;
-            }
-        };
-
-        function createJmuxerAndParser(codec) {
-            const isH265 = codec === 'h265';
-            const jmuxerCodec = isH265 ? 'H265' : 'H264';
-            jmuxer = new JMuxer({
-                node: 'player',
-                mode: 'video',
-                videoCodec: jmuxerCodec,
-                flushingTime: 0,
-                fps: 60,
-                clearBuffer: true,
-                onReady: () => {
-                    console.log('[DEBUG] JMuxer onReady fired');
-                    document.getElementById('status').textContent = 'MSE done, waiting for data...';
-                    if (videoElement) {
-                        videoElement.controls = false;
-                        videoElement.style.cssText = `
-                            -webkit-media-controls: none !important;
-                            -webkit-media-controls-enclosure: none !important;
-                            -webkit-media-controls-panel: none !important;
-                            -webkit-media-controls-play-button: none !important;
-                            -webkit-media-controls-timeline: none !important;
-                            -webkit-media-controls-current-time-display: none !important;
-                            -webkit-media-controls-time-remaining-display: none !important;
-                            -webkit-media-controls-mute-button: none !important;
-                            -webkit-media-controls-volume-slider: none !important;
-                            -webkit-media-controls-fullscreen-button: none !important;
-                            -moz-controls: none !important;
-                            -ms-media-controls: none !important;
-                        `;
-                    }
-                },
-                onError: (err) => {
-                    console.log('[DEBUG] JMuxer onError: ' + err.message);
-                    document.getElementById('status').textContent = 'MSE Error: ' + err.message;
-                }
-            });
-
-            parser = new VideoParser(({ type, data }) => {
-                if (type === 'nalu') {
-                    jmuxer.feed({ video: data });
-                } else if (type === 'init') {
-                    if (data["vps"]) {
-                        jmuxer.feed({ video: data["vps"] });
-                    }
-                    jmuxer.feed({ video: data["sps"] });
-                    jmuxer.feed({ video: data["pps"] });
-                } else if (type === 'screen_size') {
-                    statsTracker.onResolution(data["width"], data["height"]);
-                    initInput(data["width"], data["height"]);
-                } else if (type === 'size_change') {
-                    statsTracker.onResolution(data["width"], data["height"]);
-                    if (input) {
-                        input.resizeScreen(data["width"], data["height"]);
-                    }
-                }
-            }, isH265, codec);
-
-            // 处理 codec_info 前缓存的视频数据
-            for (const buf of pendingBuffer) {
-                parser.appendData(buf);
-            }
-            pendingBuffer = [];
-
-            statsTracker.codec = codec.toUpperCase();
-            document.getElementById('stats').style.display = 'block';
-            initDone = true;
-        }
-
-        function initInput(width, height) {
-            function input_data_cb(data) {
-                socket.emit('control_data', data);
-            }
-
-            input = new ScrcpyInput(input_data_cb, videoElement, width, height, false);
-
-            const powerIcon = document.getElementById('power-icon');
-            const volumeDownIcon = document.getElementById('volume-down-icon');
-            const volumeUpIcon = document.getElementById('volume-up-icon');
-            const backUpIcon = document.getElementById('back-icon');
-            const homeUpIcon = document.getElementById('home-icon');
-            const menuUpIcon = document.getElementById('menu-icon');
-
-            powerIcon.addEventListener('mousedown', function () {
-                input.screen_on_off(0);
-            });
-            powerIcon.addEventListener('mouseup', function () {
-                input.screen_on_off(1);
-            });
-
-            volumeDownIcon.addEventListener('mousedown', (event) => {
-                input.snedKeyCode(event, 0, 25);
-            });
-            volumeDownIcon.addEventListener('mouseup', (event) => {
-                input.snedKeyCode(event, 1, 25);
-            });
-
-            volumeUpIcon.addEventListener('mousedown', (event) => {
-                input.snedKeyCode(event, 0, 24);
-            });
-            volumeUpIcon.addEventListener('mouseup', (event) => {
-                input.snedKeyCode(event, 1, 24);
-            });
-
-            backUpIcon.addEventListener('mousedown', (event) => {
-                input.snedKeyCode(event, 0, 4);
-            });
-            backUpIcon.addEventListener('mouseup', (event) => {
-                input.snedKeyCode(event, 1, 4);
-            });
-            homeUpIcon.addEventListener('mousedown', (event) => {
-                input.snedKeyCode(event, 0, 3);
-            });
-            homeUpIcon.addEventListener('mouseup', (event) => {
-                input.snedKeyCode(event, 1, 3);
-            });
-            menuUpIcon.addEventListener('mousedown', (event) => {
-                input.snedKeyCode(event, 0, 187);
-            });
-            menuUpIcon.addEventListener('mouseup', (event) => {
-                input.snedKeyCode(event, 1, 187);
-            });
-        }
-
-        const socket = io({
-            reconnection: false,
-            autoConnect: true
-        });
-
-        socket.on('codec_info', (data) => {
-            const codec = data.codec && data.codec.toLowerCase() === 'h265' ? 'h265' : 'h264';
-            createJmuxerAndParser(codec);
-        });
-
-        socket.on('video_data', (data) => {
-            const newData = new Uint8Array(data);
-            statsTracker.onFrame(data.byteLength);
-            if (initDone) {
-                parser.appendData(newData);
-            } else {
-                pendingBuffer.push(newData);
-            }
-        });
-
-        socket.on('connect', () => {
-            document.getElementById('status').textContent = 'connected, waiting for codec info...';
-        });
-
-        socket.addEventListener('close', () => {
-            document.getElementById('status').textContent = 'connect closed, please refresh the page to reconnect';
-        });
-
-        socket.addEventListener('error', (error) => {
-            document.getElementById('status').textContent = 'websocket error: ' + error.message;
-        });
-
-        videoElement.addEventListener('error', (e) => {
-            console.log('[DEBUG] video element error:', videoElement.error ? videoElement.error.message : 'unknown');
-        });
-
-        window.addEventListener('beforeunload', () => {
-            socket.disconnect();
-        });
-
-        // 每 1s 刷新统计显示
-        setInterval(() => statsTracker.tick(), 1000);
-
-        // 按 s 键切换统计面板
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 's' && !e.ctrlKey && !e.metaKey) {
-                const el = document.getElementById('stats');
-                el.style.display = el.style.display === 'none' ? 'block' : 'none';
-            }
-        });
-    </script>
+    <script src="/static/js/stats.js"></script>
+    <script src="/static/js/app.js"></script>
 </body>
-
 </html>

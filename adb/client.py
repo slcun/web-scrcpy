@@ -19,8 +19,11 @@ class AdbClient:
 
     def push_server(self, local_path, remote_path):
         """
-        推送 scrcpy-server.jar 到设备。
+        推送 scrcpy-server.jar 到设备（如已存在则跳过）。
         """
+        if shell.check_file_exists(remote_path):
+            logger.info(f"设备端已有 {remote_path}，跳过推送")
+            return
         push.push_file(local_path, remote_path)
 
     def setup_forward(self, local_port):
